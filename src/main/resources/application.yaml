@@ -2,6 +2,17 @@ spring:
   application:
     name: venta-service
 
+  datasource:
+    username: root
+    password:
+    url: jdbc:mysql://localhost:3306/ventas?useSSL=false&createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&serverTimezone=UTC
+
+  jpa:
+    hibernate:
+      ddl-auto: create
+
+    database-platform: org.hibernate.dialect.MySQLDialect
+
 eureka:
   client:
     service-url:
