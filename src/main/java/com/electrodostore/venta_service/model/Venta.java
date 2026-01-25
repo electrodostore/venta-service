@@ -33,14 +33,6 @@ public class Venta {
     @Column(precision = 15, scale = 2)
     private BigDecimal totalPrice;
 
-    /* @Embedded indica que ClienteSnapshot es un objeto embebido cuyo estado
-   se persiste como parte de la entidad Venta. Este snapshot representa
-   una copia del estado del Cliente en el momento de la venta y contiene
-   únicamente una referencia (clientId) a la identidad del Cliente original,
-   la cual pertenece a un servicio externo */
-    @Embedded
-    private ClienteSnapshot cliente;
-
     /* @ElementCollection define una colección de objetos embebidos
    (ProductoSnapshot) que se almacenan en una tabla secundaria.
    Cada registro representa un producto incluido en la venta */
@@ -52,6 +44,14 @@ public class Venta {
             //Le definimos el nombre a la FK en products_of_sale que hará referencia a la PK de la venta correspondiente
             joinColumns = @JoinColumn(name = "venta_id")
     )
-    private Set<ProductoSnapshot> listProductos = new HashSet<>();
+    private Set<ProductoSnapshot> listProducts = new HashSet<>();
+
+    /* @Embedded indica que ClienteSnapshot es un objeto embebido cuyo estado
+   se persiste como parte de la entidad Venta. Este snapshot representa
+   una copia del estado del Cliente en el momento de la venta y contiene
+   únicamente una referencia (clientId) a la identidad del Cliente original,
+   la cual pertenece a un servicio externo */
+    @Embedded
+    private ClienteSnapshot client;
 
 }

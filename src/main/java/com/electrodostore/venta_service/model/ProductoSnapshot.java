@@ -18,7 +18,7 @@ public class ProductoSnapshot {
     private Long productId;
     private String productName;
     //Cantidad comprada del producto
-    private Integer productQuantity;
+    private Integer purchasedQuantity;
     //Subtotal = precio * productQuantity
     private Double subTotal;
     private String productDescription;
