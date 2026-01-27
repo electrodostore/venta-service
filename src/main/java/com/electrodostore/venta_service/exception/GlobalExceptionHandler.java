@@ -47,4 +47,12 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(buildErrorMessage(HttpStatus.NOT_FOUND, ex.getMessage()));
     }
+
+    //Handler de la excepción personalizada ServiceUnavailable
+    @ExceptionHandler(ServiceUnavailable.class)
+    public ResponseEntity<Map<String, Object>> handlerServiceUnavailable(ServiceUnavailable ex){
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(buildErrorMessage(HttpStatus.SERVICE_UNAVAILABLE, ex.getMessage()));
+    }
+
 }
