@@ -12,8 +12,8 @@ productos que pertenece a la venta en el momento que se realiza la venta*/
 @Embeddable
 public class ProductoSnapshot {
 
-    /*Referencia (productId) a la identidad  del producto original, y por la que se comparan los Snapshot
-    embebidos para evitas duplicidad*/
+    /*Referencia (productId) a la identidad del producto original, y por la que se comparan los Snapshot
+    embebidos para evitar duplicidad*/
     @EqualsAndHashCode.Include
     private Long productId;
     private String productName;
