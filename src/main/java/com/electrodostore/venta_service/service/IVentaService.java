@@ -11,7 +11,7 @@ public interface IVentaService {
     List<VentaResponseDto> findAllVentas();
 
     //Traer venta por Id
-    VentaResponseDto findVenta(Long id);
+    VentaResponseDto findVentaResponse(Long id);
 
     //Registrar venta
     VentaResponseDto saveVenta(VentaRequestDto objNuevo);

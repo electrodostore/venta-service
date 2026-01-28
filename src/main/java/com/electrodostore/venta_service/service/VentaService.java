@@ -2,6 +2,7 @@ package com.electrodostore.venta_service.service;
 
 import com.electrodostore.venta_service.dto.*;
 import com.electrodostore.venta_service.exception.ProductoNotFoundException;
+import com.electrodostore.venta_service.exception.VentaNotFoundException;
 import com.electrodostore.venta_service.integration.ClienteIntegrationService;
 import com.electrodostore.venta_service.integration.ProductoIntegrationService;
 import com.electrodostore.venta_service.model.ClienteSnapshot;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class VentaService implements IVentaService{
@@ -46,6 +48,13 @@ public class VentaService implements IVentaService{
         /*Intentamos hacer la búsqueda del cliente pasando por la capa de integración con cliente-service
         donde se manejarán todas las excepcione relacionadas con esta comunicación*/
         return clienteIntegration.findCliente(id);
+    }
+
+    /*Método propio para preparar al Cliente que viene desde cliente-service para que sea persistido como parte de la
+     Venta en la base de datos*/
+    private ClienteSnapshot clienteIntegrationToSnapshot(ClienteIntegrationDto clienteIntegrado){
+        return new ClienteSnapshot(clienteIntegrado.getId(), clienteIntegrado.getName(), clienteIntegrado.getCellphone(),
+                clienteIntegrado.getDocument(), clienteIntegrado.getAddress());
     }
 
     //Método propio para sacar los ids de los productos de una lista de objetos ProductoRequestDto
@@ -161,6 +170,17 @@ public class VentaService implements IVentaService{
         return objVentaResponse;
     }
 
+    //Método propio para buscar una venta desde la base de datos para operaciones internas
+    private Venta findVenta(Long id){
+        Optional<Venta> objVenta =  ventaRepo.findById(id);
+
+        //Optional vacío = Venta no existe --> Excepción VentaNotFound
+        if(objVenta.isEmpty()){throw new VentaNotFoundException("No se encontró Venta con id: " + id);}
+
+        return objVenta.get();
+    }
+
+
     @Override
     public List<VentaResponseDto> findAllVentas() {
         //Lista de ventas para la Response
@@ -175,9 +195,12 @@ public class VentaService implements IVentaService{
         return listVentas;
     }
 
+
     @Override
-    public VentaResponseDto findVenta(Long id) {
-        return null;
+    public VentaResponseDto findVentaResponse(Long id) {
+        return buildVentaResponse(
+                findVenta(id)
+        );
     }
 
     @Override
