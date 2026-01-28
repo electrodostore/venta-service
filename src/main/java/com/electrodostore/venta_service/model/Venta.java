@@ -26,9 +26,9 @@ public class Venta {
     //totalItems = Cantidad total de unidades de productos compradas en la venta
     private Integer totalItems;
 
-    /*BigDecimal es más recomendado que Double para cuestiones de precio
+    /*BigDecimal es más recomendado que Double para cuestiones de precio,
     ya que Double tiene problemas de redondeo y exactitud mientras que BigDecimal es más preciso*/
-    /*Precision define la cántidad máxima de digitos que puede tener el total en la base de datos y scale la
+    /*Precision define la cántidad máxima de dígitos que puede tener el total en la base de datos y scale la
     cantidad de decimales*/
     @Column(precision = 15, scale = 2)
     private BigDecimal totalPrice;
