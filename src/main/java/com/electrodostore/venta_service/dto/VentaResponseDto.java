@@ -14,7 +14,7 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-//Clase de objetos de tranferencia de datos para exponer a una venta al cliente (view)
+//Clase de objetos de transferencia de datos para exponer a una venta al cliente (view)
 public class VentaResponseDto {
 
     private Long id;
@@ -22,7 +22,7 @@ public class VentaResponseDto {
     private Integer totalItems;
     private BigDecimal totalPrice;
 
-    //También se exponene DTOs de los objetos embebidos de producto y cliente
+    //También se exponen los DTO de los objetos embebidos de producto y cliente
     private List<ProductoResponseDto> productsList = new ArrayList<>();
     private ClienteResponseDto client;
 }

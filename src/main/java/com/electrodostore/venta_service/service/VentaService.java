@@ -4,7 +4,10 @@ import com.electrodostore.venta_service.dto.*;
 import com.electrodostore.venta_service.exception.ProductoNotFoundException;
 import com.electrodostore.venta_service.integration.ClienteIntegrationService;
 import com.electrodostore.venta_service.integration.ProductoIntegrationService;
+import com.electrodostore.venta_service.model.ClienteSnapshot;
 import com.electrodostore.venta_service.model.ProductoSnapshot;
+import com.electrodostore.venta_service.model.Venta;
+import com.electrodostore.venta_service.repository.IVentaRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -16,12 +19,15 @@ public class VentaService implements IVentaService{
 
     //Inyección de dependencia para la integración con producto-service
     //Inyección de dependencia para la integración con cliente-service
+    //Inyección de dependencia para el repositorio del servicio Venta
     private final ClienteIntegrationService clienteIntegration;
     private final ProductoIntegrationService productoIntegration;
+    private final IVentaRepository ventaRepo;
     //Inyección por constructor
-    public VentaService(ProductoIntegrationService productoIntegration, ClienteIntegrationService clienteIntegration){
+    public VentaService(ProductoIntegrationService productoIntegration, ClienteIntegrationService clienteIntegration, IVentaRepository ventaRepo){
         this.productoIntegration = productoIntegration;
         this.clienteIntegration = clienteIntegration;
+        this.ventaRepo = ventaRepo;
     }
 
     //Método propio para buscar los supuestos productos que pertenecen a la venta
@@ -113,9 +119,60 @@ public class VentaService implements IVentaService{
 
     }
 
+    //Método propio para preparar la exposición de una lista de productos al cliente (view)
+    private List<ProductoResponseDto> productosSnapshotToResponse(List<ProductoSnapshot> productosSnapshot){
+        //Lista de productos para respuesta (response)
+        List<ProductoResponseDto> productosResponse = new ArrayList<>();
+
+        //Vamos recorriendo la lista de Snapshots y sacando los objetos ProductoResponseDto
+        for(ProductoSnapshot objSnapshot: productosSnapshot){
+            //Se va llenando la lista de Response
+            productosResponse.add(new ProductoResponseDto(objSnapshot.getProductId(), objSnapshot.getProductName(),
+                    objSnapshot.getPurchasedQuantity(), objSnapshot.getSubTotal(), objSnapshot.getProductDescription()));
+        }
+
+        //Retorno
+        return productosResponse;
+    }
+
+    //Método propio para preparar la exposición de un cliente como Response de la petición
+    private ClienteResponseDto clienteSnapshotToResponse(ClienteSnapshot objCliente){
+        //Retornamos instancia de ClienteResponseDto
+        return new ClienteResponseDto(objCliente.getClientId(), objCliente.getClientName(), objCliente.getClientCellphone(),
+                objCliente.getClientDocument(), objCliente.getClientAddress());
+    }
+
+    //Método propio para construir una Venta que viaje como Response a partir de una que vino desde la base de datos
+    private VentaResponseDto buildVentaResponse(Venta objVenta){
+        //Se saca el objeto de VentaResponse
+        VentaResponseDto objVentaResponse = new VentaResponseDto();
+
+        //Carga de datos
+        objVentaResponse.setId(objVenta.getId());
+        objVentaResponse.setDate(objVenta.getDate());
+        objVentaResponse.setTotalItems(objVenta.getTotalItems());
+        objVentaResponse.setTotalPrice(objVenta.getTotalPrice());
+        //Método propio para preparar productos
+        objVentaResponse.setProductsList(productosSnapshotToResponse(new ArrayList<>(objVenta.getListProducts())));
+        //Método propio para preparar cliente
+        objVentaResponse.setClient(clienteSnapshotToResponse(objVenta.getClient()));
+
+        //Retorno de venta
+        return objVentaResponse;
+    }
+
     @Override
     public List<VentaResponseDto> findAllVentas() {
-        return List.of();
+        //Lista de ventas para la Response
+        List<VentaResponseDto> listVentas = new ArrayList<>();
+
+        //Vamos preparando cada venta para ser expuesta al cliente
+        for(Venta objVenta: ventaRepo.findAll()){
+            listVentas.add(buildVentaResponse(objVenta));
+        }
+
+        //Retornamos ventas
+        return listVentas;
     }
 
     @Override
