@@ -3,6 +3,8 @@ package com.electrodostore.venta_service.model;
 import jakarta.persistence.Embeddable;
 import lombok.*;
 
+import java.math.BigDecimal;
+
 @Getter  @Setter
 @AllArgsConstructor
 @NoArgsConstructor
@@ -20,7 +22,7 @@ public class ProductoSnapshot {
     //Cantidad comprada del producto
     private Integer purchasedQuantity;
     //Subtotal = precio * productQuantity
-    private Double subTotal;
+    private BigDecimal subTotal;
     private String productDescription;
 
 }
