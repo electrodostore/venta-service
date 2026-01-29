@@ -2,10 +2,7 @@ package com.electrodostore.venta_service.client;
 
 import com.electrodostore.venta_service.dto.ProductoIntegrationDto;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -19,6 +16,6 @@ public interface ProductoClient {
     List<ProductoIntegrationDto> findProductos(@RequestBody List<Long> productsIds) ;
 
     //Descripción del método que descuenta una cierta cantidad al stock de un determinado producto
-    @PatchMapping("/productos/descontar-stock")
-    void descontarProductoStock(@RequestParam Long productoId, @RequestParam Integer cantidadDescontar);
+    @PatchMapping("/productos/descontar-stock/{productoId}")
+    void descontarProductoStock(@PathVariable Long productoId, @RequestBody Integer cantidadDescontar);
 }
