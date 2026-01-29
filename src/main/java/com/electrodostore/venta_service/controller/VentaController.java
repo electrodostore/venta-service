@@ -42,5 +42,10 @@ public class VentaController {
         return ResponseEntity.noContent().build();
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<VentaResponseDto> updateVenta(@PathVariable Long id, @RequestBody VentaRequestDto objUpdated){
+        return ResponseEntity.ok(ventaService.updateVenta(id, objUpdated));
+    }
+
 
 }

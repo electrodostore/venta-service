@@ -196,6 +196,42 @@ public class VentaService implements IVentaService{
         }
     }
 
+    //Método propio para construir una Venta que será persistida en la base de datos a partir de una venta proporcionada por el cliente (view)
+    private Venta buildVentaPersistir(VentaRequestDto objRequest){
+
+        //Una venta no puede existir sin un cliente
+        if(objRequest.getClientId() == null){throw new ClienteNotFoundException("No fue asignado ningún cliente a la venta");}
+
+        //Primero se saca la lista de los ids de los productos que se están solicitando encontrar (Lista de productos en objNuevo)
+        List<Long> productosIds = sacarProductosIds(objRequest.getProductsList());
+
+        //Luego se buscan los productos a partir de la lista anterior de ids
+        List<ProductoIntegrationDto> productosIntegration = findProductos(productosIds);
+
+        //Comprobamos la correcta carga de TODOS los productos en la lista "productosIntegration"
+        verificarCargaCompletaDeProductos(productosIntegration, productosIds);
+
+        /*Una vez confirmado que todos los productos llegaron, procedemos a prepararlos para su persistencia en la
+         base de datos, pasando de productos integrados a productos Snapshot*/
+        List<ProductoSnapshot> productosSnapshot = productosIntegrationToSnapshot(objRequest.getProductsList(), productosIntegration);
+
+        //Buscamos el cliente dueño de la venta
+        ClienteIntegrationDto cliente = findCliente(objRequest.getClientId());
+        //Preparamos Cliente para persistencia
+        ClienteSnapshot clienteSnapshot = clienteIntegrationToSnapshot(cliente);
+
+        //Creamos instancia con todos los datos y retornamos
+        return(
+                new Venta(
+                    null, //El id no sé manda OBVIAMENTE
+                    objRequest.getDate(),
+                    calcularTotalItems(productosSnapshot),
+                    calcularTotalPrice(productosSnapshot),
+                    new HashSet<>(productosSnapshot), //Colección de productos
+                    clienteSnapshot //Cliente de venta
+                )
+        );
+    }
 
     //Método propio para buscar una venta desde la base de datos para operaciones internas
     @Transactional(readOnly = true)
@@ -235,37 +271,8 @@ public class VentaService implements IVentaService{
     @Override
     public VentaResponseDto saveVenta(VentaRequestDto objNuevo) {
 
-        //Una venta no puede existir sin un cliente
-        if(objNuevo.getClientId() == null){throw new ClienteNotFoundException("No fue asignado ningún cliente a la venta");}
-
-        //Primero se saca la lista de los ids de los productos que se están solicitando encontrar (Lista de productos en objNuevo)
-        List<Long> productosIds = sacarProductosIds(objNuevo.getProductsList());
-
-        //Luego se buscan los productos a partir de la lista anterior de ids
-        List<ProductoIntegrationDto> productosIntegration = findProductos(productosIds);
-
-        //Comprobamos la correcta carga de TODOS los productos en la lista "productosIntegration"
-        verificarCargaCompletaDeProductos(productosIntegration, productosIds);
-
-        /*Una vez confirmado que todos los productos llegaron, procedemos a prepararlos para su persistencia en la
-         base de datos, pasando de productos integrados a productos Snapshot*/
-        List<ProductoSnapshot> productosSnapshot = productosIntegrationToSnapshot(objNuevo.getProductsList(), productosIntegration);
-
-        //Buscamos el cliente dueño de la venta
-        ClienteIntegrationDto cliente = findCliente(objNuevo.getClientId());
-        //Preparamos Cliente para persistencia
-        ClienteSnapshot clienteSnapshot = clienteIntegrationToSnapshot(cliente);
-
-        //Creamos instancia con todos los datos
-        Venta objVenta = new Venta(
-                null, //El id no sé manda OBVIAMENTE
-                objNuevo.getDate(),
-                calcularTotalItems(productosSnapshot),
-                calcularTotalPrice(productosSnapshot),
-                new HashSet<>(productosSnapshot),
-                clienteSnapshot
-
-        );
+        //A partir de la venta enviada por el cliente, construimos Venta para persistir
+        Venta objVenta = buildVentaPersistir(objNuevo);
 
         //Guardamos registro
         ventaRepo.save(objVenta);
@@ -289,7 +296,33 @@ public class VentaService implements IVentaService{
     @Transactional
     @Override
     public VentaResponseDto updateVenta(Long id, VentaRequestDto objUpdated) {
-        return null;
+
+        //No se puede actualizar Venta sin un cliente
+        if(objUpdated.getClientId() == null){throw new ClienteNotFoundException("No se puede actualizar la venta si no es proporcionado un cliente");}
+
+        //Buscamos venta y si no existe, lo sabremos
+        Venta objVenta =  findVenta(id);
+
+        //Reponemos stock de los productos antiguos de la venta
+        reponerProductosStock(objVenta.getListProducts());
+
+        //Vaciamos lista antigua de productos para darle paso a la nueva
+        objVenta.getListProducts().clear();
+
+        //Construcción de nueva venta a partir de los datos enviados por el cliente (objUpdated)
+        Venta ventaUpdated = buildVentaPersistir(objUpdated);
+
+        //Ahora, se actualizan los datos de la venta antigua por los de la nueva venta
+        objVenta.setDate(objUpdated.getDate());
+        objVenta.setTotalItems(ventaUpdated.getTotalItems());
+        objVenta.setTotalPrice(ventaUpdated.getTotalPrice());
+        objVenta.setListProducts(ventaUpdated.getListProducts());
+        objVenta.setClient(ventaUpdated.getClient());
+
+        //Actualizamos en DB
+        ventaRepo.save(objVenta);
+
+        return buildVentaResponse(objVenta);
     }
 
     @Transactional
