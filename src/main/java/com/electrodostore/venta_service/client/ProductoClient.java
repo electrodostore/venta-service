@@ -12,6 +12,10 @@ métodos de producto-service*/
 @FeignClient(name = "producto-service")//-> Mismo nombre con el que se registró en Eureka-server
 public interface ProductoClient {
 
+    //Descripción del método para encontrar un producto en producto-service por su id
+    @GetMapping("/productos/{productoId}")
+    ProductoIntegrationDto findProducto(@PathVariable Long productoId);
+
     //Descripción del método que traer una lista de productos a partir de sus ids
     @PostMapping("/productos/traer-productos-por-ids")
     List<ProductoIntegrationDto> findProductos(@RequestBody List<Long> productsIds) ;

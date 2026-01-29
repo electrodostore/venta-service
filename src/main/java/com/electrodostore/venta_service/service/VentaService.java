@@ -267,6 +267,7 @@ public class VentaService implements IVentaService{
     @Transactional
     @Override
     public void deleteVenta(Long id) {
+
     }
 
     @Transactional

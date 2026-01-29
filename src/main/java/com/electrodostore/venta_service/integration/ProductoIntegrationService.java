@@ -98,4 +98,28 @@ public class ProductoIntegrationService {
          producto -> Lo indicamos*/
         throw new ServiceUnavailable("No se pudo establecer comunicación con producto-service. Por favor intente más tarde");
     }
+
+    //Método protegido por CB para encontrar un producto en producto-service por su id
+    @CircuitBreaker(name = "producto-service-read", fallbackMethod = "fallbackFindProducto")
+    @Retry(name = "producto-service-read")
+    public ProductoIntegrationDto findProducto(Long productoId){
+        return productoClient.findProducto(productoId);
+    }
+
+    //fallback para --> findProducto
+    public ProductoIntegrationDto fallbackFindProducto(Long productoId, Throwable ex){
+
+        //Agregamos le warn al log indicando que el fallback fue activado por problema de comunicación
+        log.warn("fallback activado para producto-service -> productoId={}", productoId, ex);
+
+        /*Si la excepción es NOT_FOUND, ya se sabe que es porque no se encontró el producto solicitado, entonces lo
+         indicamos por medio de excepción*/
+        if(ex instanceof FeignException.NotFound){
+            throw new ProductoNotFoundException("No se encontró producto con id: " + productoId);
+        }
+
+        /*Si la excepción no es NOT_FOUND entonces ya es un error de infraestructura en la comunicación con el servicio
+         producto -> Lo indicamos*/
+        throw new ServiceUnavailable("No se pudo establecer comunicación con producto-service. Por favor intente más tarde");
+    }
 }
