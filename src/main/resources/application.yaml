@@ -19,6 +19,8 @@ spring:
 
     database-platform: org.hibernate.dialect.MySQLDialect
 
+    open-in-view: false
+
 eureka:
   client:
     service-url:

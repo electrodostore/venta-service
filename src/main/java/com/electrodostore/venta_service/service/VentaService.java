@@ -11,6 +11,7 @@ import com.electrodostore.venta_service.model.ProductoSnapshot;
 import com.electrodostore.venta_service.model.Venta;
 import com.electrodostore.venta_service.repository.IVentaRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -110,11 +111,10 @@ public class VentaService implements IVentaService{
 
                     //Descontamos la cantidad comprada al producto en el servicio Productos
                     productoIntegration.descontarProductoStock(objIntegration.getId(), objRequest.getQuantity());
-
+                        
                     //Pasamos al siguiente Producto Integrado y repetimos proceso
                     break;
                 }
-
             }
         }
 
@@ -188,7 +188,8 @@ public class VentaService implements IVentaService{
     }
 
     //Método propio para buscar una venta desde la base de datos para operaciones internas
-    private Venta findVenta(Long id){
+    @Transactional(readOnly = true)
+    protected Venta findVenta(Long id){
         Optional<Venta> objVenta =  ventaRepo.findById(id);
 
         //Optional vacío = Venta no existe --> Excepción VentaNotFound
@@ -197,7 +198,7 @@ public class VentaService implements IVentaService{
         return objVenta.get();
     }
 
-
+    @Transactional(readOnly = true)
     @Override
     public List<VentaResponseDto> findAllVentas() {
         //Lista de ventas para la Response
@@ -212,7 +213,7 @@ public class VentaService implements IVentaService{
         return listVentas;
     }
 
-
+    @Transactional(readOnly = true)
     @Override
     public VentaResponseDto findVentaResponse(Long id) {
         return buildVentaResponse(
@@ -220,6 +221,7 @@ public class VentaService implements IVentaService{
         );
     }
 
+    @Transactional
     @Override
     public VentaResponseDto saveVenta(VentaRequestDto objNuevo) {
 
@@ -262,16 +264,19 @@ public class VentaService implements IVentaService{
         return buildVentaResponse(objVenta);
     }
 
+    @Transactional
     @Override
     public void deleteVenta(Long id) {
 
     }
 
+    @Transactional
     @Override
     public VentaResponseDto updateVenta(Long id, VentaRequestDto objUpdated) {
         return null;
     }
 
+    @Transactional
     @Override
     public VentaResponseDto patchVenta(Long id, VentaRequestDto objUpdated) {
         return null;
