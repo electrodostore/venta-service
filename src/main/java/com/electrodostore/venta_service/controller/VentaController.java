@@ -34,4 +34,13 @@ public class VentaController {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ventaService.saveVenta(objNuevo));
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteVenta(@PathVariable Long id){
+        ventaService.deleteVenta(id);
+
+        return ResponseEntity.noContent().build();
+    }
+
+
 }

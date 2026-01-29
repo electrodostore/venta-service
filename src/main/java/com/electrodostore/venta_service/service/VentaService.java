@@ -267,6 +267,14 @@ public class VentaService implements IVentaService{
     @Transactional
     @Override
     public void deleteVenta(Long id) {
+        Venta objVenta = findVenta(id);
+
+        //Reponemos stock a cada producto que fue agregado a esta venta
+        for(ProductoSnapshot objSnapshot: objVenta.getListProducts()){
+            productoIntegration.reponerProductoStock(objSnapshot.getProductId(), objSnapshot.getPurchasedQuantity());
+        }
+
+        ventaRepo.delete(objVenta);
 
     }
 
