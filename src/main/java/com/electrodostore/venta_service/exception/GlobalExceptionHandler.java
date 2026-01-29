@@ -3,7 +3,7 @@ package com.electrodostore.venta_service.exception;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
@@ -11,7 +11,7 @@ import java.util.Map;
 
 /*Clase manejadora de excepciones personalizadas -> Cuando ocurre una excepción Spring revisa esta clase
 a ver si existe un handler que la maneje, sino lanza un handler por defeecto*/
-@RestController
+@RestControllerAdvice
 public class GlobalExceptionHandler {
 
     //Método propio para construir el mensaje de error de cada excepción personalizada

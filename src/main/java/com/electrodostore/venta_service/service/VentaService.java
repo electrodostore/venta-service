@@ -1,6 +1,7 @@
 package com.electrodostore.venta_service.service;
 
 import com.electrodostore.venta_service.dto.*;
+import com.electrodostore.venta_service.exception.ClienteNotFoundException;
 import com.electrodostore.venta_service.exception.ProductoNotFoundException;
 import com.electrodostore.venta_service.exception.VentaNotFoundException;
 import com.electrodostore.venta_service.integration.ClienteIntegrationService;
@@ -11,10 +12,8 @@ import com.electrodostore.venta_service.model.Venta;
 import com.electrodostore.venta_service.repository.IVentaRepository;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
+import java.math.BigDecimal;
+import java.util.*;
 
 @Service
 public class VentaService implements IVentaService{
@@ -82,16 +81,7 @@ public class VentaService implements IVentaService{
 
     /*Método propio para transferir los datos de una determinada lista de productos que vengan en la petición como DTO
          para su posterior persistencia en la base de datos*/
-    private List<ProductoSnapshot> ProductosDtoToSnapshot(List<ProductoRequestDto> productosRequest){
-        //Lista de los ids de los productos que se están solicitando encontrar
-        List<Long> productosIds = sacarProductosIds(productosRequest);
-
-        //Lista de los productos con sus campos completos después de ser buscados por sus ids
-        List<ProductoIntegrationDto> productosIntegration = findProductos(productosIds);
-
-        //Comprobamos la correcta carga de TODOS los productos
-        verificarCargaCompletaDeProductos(productosIntegration, productosIds);
-
+    private List<ProductoSnapshot> productosIntegrationToSnapshot(List<ProductoRequestDto> productosRequest, List<ProductoIntegrationDto> productosIntegration){
         //Lista que va a almacenar los diferentes productos una vez estén listos para ser persistidos en la base de datos (Snapshots)
         List<ProductoSnapshot> productosSnapshot = new ArrayList<>();
 
@@ -111,15 +101,20 @@ public class VentaService implements IVentaService{
                         throw new ProductoNotFoundException("El producto con id: " + objIntegration.getId() + " no tiene suficiente stock disponible para la venta");
                     }
 
+                    //Se calcula el subTotal de cada producto comprado en formato BigDecimal
+                    BigDecimal subTotal = objIntegration.getPrice().multiply(BigDecimal.valueOf(objRequest.getQuantity()));
+
                     //Una vez pasados los filtros anteriores, podemos crear y agregar el Snapshot a la lista de Snapshots finales
                     productosSnapshot.add(new ProductoSnapshot(objIntegration.getId(), objIntegration.getName(), objRequest.getQuantity(),
-                            objIntegration.getPrice()*objRequest.getQuantity(), objIntegration.getDescription()));
+                            subTotal, objIntegration.getDescription()));
 
                     //Descontamos la cantidad comprada al producto en el servicio Productos
                     productoIntegration.descontarProductoStock(objIntegration.getId(), objRequest.getQuantity());
+
+                    //Pasamos al siguiente Producto Integrado y repetimos proceso
+                    break;
                 }
-                //Pasamos al siguiente Producto Integrado y repetimos proceso
-                break;
+
             }
         }
 
@@ -170,6 +165,28 @@ public class VentaService implements IVentaService{
         return objVentaResponse;
     }
 
+    //Método propio para calcular el valor total de una venta a partir de los subtotales de sus productos
+    private BigDecimal calcularTotalPrice(List<ProductoSnapshot> productosComprados){
+        BigDecimal totalPrice = BigDecimal.ZERO;
+
+        for(ProductoSnapshot objSnapshot: productosComprados){
+            totalPrice = totalPrice.add(objSnapshot.getSubTotal());
+        }
+
+        return  totalPrice;
+    }
+
+    //Método propio para calcular la cantidad total de productos comprados
+    private Integer calcularTotalItems(List<ProductoSnapshot> productosComprados){
+        Integer totalItems = 0;
+
+        for(ProductoSnapshot objSnapshot: productosComprados){
+            totalItems += objSnapshot.getPurchasedQuantity();
+        }
+
+        return totalItems;
+    }
+
     //Método propio para buscar una venta desde la base de datos para operaciones internas
     private Venta findVenta(Long id){
         Optional<Venta> objVenta =  ventaRepo.findById(id);
@@ -205,7 +222,44 @@ public class VentaService implements IVentaService{
 
     @Override
     public VentaResponseDto saveVenta(VentaRequestDto objNuevo) {
-        return null;
+
+        //Una venta no puede existir sin un cliente
+        if(objNuevo.getClientId() == null){throw new ClienteNotFoundException("No fue asignado ningún cliente a la venta");}
+
+        //Primero se saca la lista de los ids de los productos que se están solicitando encontrar (Lista de productos en objNuevo)
+        List<Long> productosIds = sacarProductosIds(objNuevo.getProductsList());
+
+        //Luego se buscan los productos a partir de la lista anterior de ids
+        List<ProductoIntegrationDto> productosIntegration = findProductos(productosIds);
+
+        //Comprobamos la correcta carga de TODOS los productos en la lista "productosIntegration"
+        verificarCargaCompletaDeProductos(productosIntegration, productosIds);
+
+        /*Una vez confirmado que todos los productos llegaron, procedemos a prepararlos para su persistencia en la
+         base de datos, pasando de productos integrados a productos Snapshot*/
+        List<ProductoSnapshot> productosSnapshot = productosIntegrationToSnapshot(objNuevo.getProductsList(), productosIntegration);
+
+        //Buscamos el cliente dueño de la venta
+        ClienteIntegrationDto cliente = findCliente(objNuevo.getClientId());
+        //Preparamos Cliente para persistencia
+        ClienteSnapshot clienteSnapshot = clienteIntegrationToSnapshot(cliente);
+
+        //Creamos instancia con todos los datos
+        Venta objVenta = new Venta(
+                null, //El id no sé manda OBVIAMENTE
+                objNuevo.getDate(),
+                calcularTotalItems(productosSnapshot),
+                calcularTotalPrice(productosSnapshot),
+                new HashSet<>(productosSnapshot),
+                clienteSnapshot
+
+        );
+
+        //Guardamos registro
+        ventaRepo.save(objVenta);
+
+        //Mostramos lo registrado
+        return buildVentaResponse(objVenta);
     }
 
     @Override
