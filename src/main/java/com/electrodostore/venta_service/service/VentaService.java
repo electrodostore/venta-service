@@ -187,6 +187,16 @@ public class VentaService implements IVentaService{
         return totalItems;
     }
 
+    //Método propio para llamar al método de integración que repone una cierta cantidad de stock a cada producto de la colección
+    private void reponerProductosStock(Set<ProductoSnapshot> listProductos){
+
+        //Reponemos stock a cada producto que fue traído en la colección
+        for(ProductoSnapshot objSnapshot: listProductos){
+            productoIntegration.reponerProductoStock(objSnapshot.getProductId(), objSnapshot.getPurchasedQuantity());
+        }
+    }
+
+
     //Método propio para buscar una venta desde la base de datos para operaciones internas
     @Transactional(readOnly = true)
     protected Venta findVenta(Long id){
@@ -269,10 +279,8 @@ public class VentaService implements IVentaService{
     public void deleteVenta(Long id) {
         Venta objVenta = findVenta(id);
 
-        //Reponemos stock a cada producto que fue agregado a esta venta
-        for(ProductoSnapshot objSnapshot: objVenta.getListProducts()){
-            productoIntegration.reponerProductoStock(objSnapshot.getProductId(), objSnapshot.getPurchasedQuantity());
-        }
+        //Reponemos al stock de cada producto la cantidad que fue comprada
+        reponerProductosStock(objVenta.getListProducts());
 
         ventaRepo.delete(objVenta);
 
