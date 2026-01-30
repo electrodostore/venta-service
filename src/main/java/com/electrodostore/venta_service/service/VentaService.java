@@ -106,8 +106,8 @@ public class VentaService implements IVentaService{
                     BigDecimal subTotal = objIntegration.getPrice().multiply(BigDecimal.valueOf(objRequest.getQuantity()));
 
                     //Una vez pasados los filtros anteriores, podemos crear y agregar el Snapshot a la lista de Snapshots finales
-                    productosSnapshot.add(new ProductoSnapshot(objIntegration.getId(), objIntegration.getName(), objRequest.getQuantity(),
-                            subTotal, objIntegration.getDescription()));
+                    productosSnapshot.add(new ProductoSnapshot(objIntegration.getId(), objIntegration.getName(), objIntegration.getPrice(),
+                            objRequest.getQuantity(), subTotal, objIntegration.getDescription()));
 
                     //Descontamos la cantidad comprada al producto en el servicio Productos
                     productoIntegration.descontarProductoStock(objIntegration.getId(), objRequest.getQuantity());
@@ -132,7 +132,8 @@ public class VentaService implements IVentaService{
         for(ProductoSnapshot objSnapshot: productosSnapshot){
             //Se va llenando la lista de Response
             productosResponse.add(new ProductoResponseDto(objSnapshot.getProductId(), objSnapshot.getProductName(),
-                    objSnapshot.getPurchasedQuantity(), objSnapshot.getSubTotal(), objSnapshot.getProductDescription()));
+                    objSnapshot.getProductPrice(), objSnapshot.getPurchasedQuantity(), objSnapshot.getSubTotal(),
+                      objSnapshot.getProductDescription()));
         }
 
         //Retorno

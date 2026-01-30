@@ -19,6 +19,7 @@ public class ProductoSnapshot {
     @EqualsAndHashCode.Include
     private Long productId;
     private String productName;
+    private BigDecimal productPrice;
     //Cantidad comprada del producto
     private Integer purchasedQuantity;
     //Subtotal = precio * productQuantity

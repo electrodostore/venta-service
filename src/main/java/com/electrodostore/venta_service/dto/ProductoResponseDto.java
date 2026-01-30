@@ -16,6 +16,7 @@ public class ProductoResponseDto {
 
     private Long id;
     private String name;
+    private BigDecimal price;
     private Integer purchasedQuantity;
     private BigDecimal subTotal;
     private String description;
