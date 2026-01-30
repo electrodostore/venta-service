@@ -48,4 +48,8 @@ public class VentaController {
     }
 
 
+    @PatchMapping("/{id}")
+    public ResponseEntity<VentaResponseDto> patchVenta(@PathVariable Long id, @RequestBody VentaRequestDto objUpdated){
+        return ResponseEntity.ok(ventaService.patchVenta(id, objUpdated));
+    }
 }

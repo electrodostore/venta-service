@@ -202,7 +202,7 @@ public class VentaService implements IVentaService{
         //Una venta no puede existir sin un cliente
         if(objRequest.getClientId() == null){throw new ClienteNotFoundException("No fue asignado ningún cliente a la venta");}
 
-        //Primero se saca la lista de los ids de los productos que se están solicitando encontrar (Lista de productos en objNuevo)
+        //Primero se saca la lista de los ids de los productos que se están solicitando encontrar (Lista de productos en objRequest)
         List<Long> productosIds = sacarProductosIds(objRequest.getProductsList());
 
         //Luego se buscan los productos a partir de la lista anterior de ids
@@ -303,14 +303,14 @@ public class VentaService implements IVentaService{
         //Buscamos venta y si no existe, lo sabremos
         Venta objVenta =  findVenta(id);
 
-        //Reponemos stock de los productos antiguos de la venta
-        reponerProductosStock(objVenta.getListProducts());
-
-        //Vaciamos lista antigua de productos para darle paso a la nueva
-        objVenta.getListProducts().clear();
-
         //Construcción de nueva venta a partir de los datos enviados por el cliente (objUpdated)
         Venta ventaUpdated = buildVentaPersistir(objUpdated);
+
+        /*Si los datos actualizados se crean sin ninguna excepción, significa que los productos nuevos solicitados para la
+         nueva lista son válidos por lo que reponemos el stock de los productos antiguos de la venta*/
+        reponerProductosStock(objVenta.getListProducts());
+        //Vaciamos lista antigua de productos para darle paso a la nueva
+        objVenta.getListProducts().clear();
 
         //Ahora, se actualizan los datos de la venta antigua por los de la nueva venta
         objVenta.setDate(objUpdated.getDate());
@@ -328,6 +328,62 @@ public class VentaService implements IVentaService{
     @Transactional
     @Override
     public VentaResponseDto patchVenta(Long id, VentaRequestDto objUpdated) {
-        return null;
+        //Buscamos venta para verificar si existe
+        Venta objVenta = findVenta(id);
+
+        //Si el cliente solicita cambiar fecha, se cambia
+        if(objUpdated.getDate() != null){objVenta.setDate(objUpdated.getDate());}
+
+        //Si manda una otra lista de productos, procedemos a actualizar la anterior de la venta
+        if(!objUpdated.getProductsList().isEmpty()){
+
+            //Se saca la lista de los ids de los productos que se están solicitando encontrar (Lista de productos en objUpdated)
+            List<Long> productosIds = sacarProductosIds(objUpdated.getProductsList());
+
+            //Luego se buscan los productos a partir de la lista anterior de ids
+            List<ProductoIntegrationDto> productosIntegration = findProductos(productosIds);
+
+            //Comprobamos la correcta carga de TODOS los productos en la lista "productosIntegration"
+            verificarCargaCompletaDeProductos(productosIntegration, productosIds);
+
+            /*Cuándo se confirme que hay productos VÁLIDOS en la nueva lista de productos buscados -> "productosIntegration",
+             y que todos los productos solicitados llegaron, procedemos a reponer el stock de los productos de la venta que
+             serán reemplazados*/
+            /*NOTA: Si no hay productos válidos en la nueva lista o algún producto solicitado no existe, no se llegará a este
+            punto, ya que se sabría en los filtros anteriores y en la búsqueda de "productosIntegration"*/
+            reponerProductosStock(objVenta.getListProducts());
+            //Vaciamos lista antigua de productos para darle paso a la nueva
+            objVenta.getListProducts().clear();
+
+            /*Ahora, procedemos a preparar los productos integrados para su persistencia en la base de datos, pasando de
+             productosIntegration a productosSnapshot*/
+            List<ProductoSnapshot> productosSnapshot = productosIntegrationToSnapshot(objUpdated.getProductsList(), productosIntegration);
+
+            //Cambiamos total de productos y precio total de la venta con respecto a los productos nuevos
+            objVenta.setTotalItems(calcularTotalItems(productosSnapshot));
+            objVenta.setTotalPrice(calcularTotalPrice(productosSnapshot));
+
+            //Finalmente, agregamos la nueva lista de productos a la venta (objVenta) lista para persistir
+            objVenta.setListProducts(new HashSet<>(productosSnapshot));
+        }
+
+        //Si hay una actualización de cliente --> se hace sin problema
+        if(objUpdated.getClientId() != null){
+
+            //Búsqueda de cliente por ID en cliente-service
+            ClienteIntegrationDto objCliente = findCliente(objUpdated.getClientId());
+
+            //Nuevo cliente listo para ser persistido en la DB
+            ClienteSnapshot clienteSnapshot = clienteIntegrationToSnapshot(objCliente);
+
+            //Se lo asignamos a la venta
+            objVenta.setClient(clienteSnapshot);
+        }
+
+        //Finalmente, se guardan los cambios
+        ventaRepo.save(objVenta);
+
+        //Se retorna la venta actualizada
+        return buildVentaResponse(objVenta);
     }
 }
