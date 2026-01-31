@@ -11,7 +11,7 @@ import java.math.BigDecimal;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-//Clase Dto que me expone los diferentes productos asignados a un venta
+//Clase DTO que me expone los diferentes productos asignados a una venta
 public class ProductoResponseDto {
 
     private Long id;

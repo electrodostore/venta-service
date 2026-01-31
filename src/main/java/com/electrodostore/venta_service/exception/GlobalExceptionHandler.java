@@ -10,7 +10,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /*Clase manejadora de excepciones personalizadas -> Cuando ocurre una excepción Spring revisa esta clase
-a ver si existe un handler que la maneje, sino lanza un handler por defeecto*/
+a ver si existe un handler que la maneje, si no lanza un handler por defecto*/
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -18,7 +18,7 @@ public class GlobalExceptionHandler {
     private Map<String, Object> buildErrorMessage(HttpStatus status, String message){
         Map<String, Object> response = new LinkedHashMap<>();
 
-        //Establecemos pares clave-valor para la response
+        //Establecemos pares: clave-valor para construir la response
         response.put("timestamp", LocalDateTime.now());
         response.put("status", status.value());
         response.put("error", status.getReasonPhrase());
@@ -27,7 +27,7 @@ public class GlobalExceptionHandler {
         return response;
     }
 
-    //Manejador de la excepciónn VentaNoFound
+    //Manejador de la excepción VentaNoFound
     @ExceptionHandler(VentaNotFoundException.class)
     public ResponseEntity<Map<String, Object>> handlerVentaNotFound(VentaNotFoundException ex){
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
