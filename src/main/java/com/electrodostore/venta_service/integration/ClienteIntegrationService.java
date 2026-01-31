@@ -3,7 +3,7 @@ package com.electrodostore.venta_service.integration;
 import com.electrodostore.venta_service.client.ClienteFeignClient;
 import com.electrodostore.venta_service.dto.ClienteIntegrationDto;
 import com.electrodostore.venta_service.exception.ClienteNotFoundException;
-import com.electrodostore.venta_service.exception.ServiceUnavailable;
+import com.electrodostore.venta_service.exception.ServiceUnavailableException;
 import feign.FeignException;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
@@ -43,7 +43,7 @@ public class ClienteIntegrationService {
         }
 
         //Si la excepción no es NOT_FOUND, entonces estamos hablando de una excepción de infraestructura en la comunicación de los servicios -> ServiceUnavailable
-        throw new ServiceUnavailable("No se logró establecer la comunicación con cliente-service. Por favor intente más tarde");
+        throw new ServiceUnavailableException("No se logró establecer la comunicación con cliente-service. Por favor intente más tarde");
 
     }
 }

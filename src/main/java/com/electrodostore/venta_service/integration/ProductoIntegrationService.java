@@ -3,7 +3,7 @@ package com.electrodostore.venta_service.integration;
 import com.electrodostore.venta_service.client.ProductoClient;
 import com.electrodostore.venta_service.dto.ProductoIntegrationDto;
 import com.electrodostore.venta_service.exception.ProductoNotFoundException;
-import com.electrodostore.venta_service.exception.ServiceUnavailable;
+import com.electrodostore.venta_service.exception.ServiceUnavailableException;
 import feign.FeignException;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
@@ -49,7 +49,7 @@ public class ProductoIntegrationService {
         }
 
         //Si la excepción no es NOT_FOUND entonces ya es un error en la comunicación con el servicio producto -> Lo indicamos
-        throw new ServiceUnavailable("No se pudo establecer comunicación con producto-service. Por favor intente más tarde");
+        throw new ServiceUnavailableException("No se pudo establecer comunicación con producto-service. Por favor intente más tarde");
     }
 
 
@@ -72,7 +72,7 @@ public class ProductoIntegrationService {
         }
 
         //Si la excepción no es NOT_FOUND entonces ya es un error en la comunicación con el servicio producto -> Lo indicamos
-        throw new ServiceUnavailable("No se pudo establecer comunicación con producto-service. Por favor intente más tarde");
+        throw new ServiceUnavailableException("No se pudo establecer comunicación con producto-service. Por favor intente más tarde");
     }
 
     //Protección de método para reponer stock a un producto en el servicio producto por su id
@@ -96,7 +96,7 @@ public class ProductoIntegrationService {
 
         /*Si la excepción no es NOT_FOUND entonces ya es un error de infraestructura en la comunicación con el servicio
          producto -> Lo indicamos*/
-        throw new ServiceUnavailable("No se pudo establecer comunicación con producto-service. Por favor intente más tarde");
+        throw new ServiceUnavailableException("No se pudo establecer comunicación con producto-service. Por favor intente más tarde");
     }
 
     //Método protegido por CB para encontrar un producto en producto-service por su id
@@ -120,6 +120,6 @@ public class ProductoIntegrationService {
 
         /*Si la excepción no es NOT_FOUND entonces ya es un error de infraestructura en la comunicación con el servicio
          producto -> Lo indicamos*/
-        throw new ServiceUnavailable("No se pudo establecer comunicación con producto-service. Por favor intente más tarde");
+        throw new ServiceUnavailableException("No se pudo establecer comunicación con producto-service. Por favor intente más tarde");
     }
 }

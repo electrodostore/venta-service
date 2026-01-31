@@ -50,18 +50,10 @@ public class GlobalExceptionHandler {
     }
 
     //Handler de la excepción personalizada ServiceUnavailable
-    @ExceptionHandler(ServiceUnavailable.class)
-    public ResponseEntity<Map<String, Object>> handlerServiceUnavailable(ServiceUnavailable ex){
-        Map<String, Object> response = new LinkedHashMap<>();
-
-        //Establecemos pares: clave-valor para construir la response
-        response.put("timestamp", LocalDateTime.now());
-        response.put("status", HttpStatus.SERVICE_UNAVAILABLE.value());
-        response.put("error", HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase());
-        response.put("mensaje", ex.getMessage());
-
+    @ExceptionHandler(ServiceUnavailableException.class)
+    public ResponseEntity<Map<String, Object>> handlerServiceUnavailable(ServiceUnavailableException ex){
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
-                .body(response);
+                .body(buildErrorMessage(HttpStatus.SERVICE_UNAVAILABLE, ex.getMessage(), ex.getErrorCode().name()));
     }
 
 }
