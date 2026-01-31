@@ -21,6 +21,17 @@ spring:
 
     open-in-view: false
 
+resilience4j:
+  circuitbreaker:
+    instances:
+      ventaService:
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        failureRateThreshold: 50
+        waitDurationInOpenState: 30s
+        ignoreExceptions:
+          - feign.FeignException.NotFound
+
 eureka:
   client:
     service-url:
