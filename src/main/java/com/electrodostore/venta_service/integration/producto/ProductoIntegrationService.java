@@ -1,9 +1,9 @@
-package com.electrodostore.venta_service.integration;
+package com.electrodostore.venta_service.integration.producto;
 
-import com.electrodostore.venta_service.client.ProductoClient;
-import com.electrodostore.venta_service.dto.ProductoIntegrationDto;
+import com.electrodostore.venta_service.integration.producto.dto.ProductoIntegrationDto;
 import com.electrodostore.venta_service.exception.ProductoNotFoundException;
 import com.electrodostore.venta_service.exception.ServiceUnavailableException;
+import com.electrodostore.venta_service.integration.producto.client.ProductoFeignClient;
 import feign.FeignException;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
@@ -20,8 +20,8 @@ import java.util.Set;
 public class ProductoIntegrationService {
 
     //Inyección de dependencia por constructor para el cliente de producto-service
-    private final ProductoClient productoClient;
-    public ProductoIntegrationService(ProductoClient productoClient){
+    private final ProductoFeignClient productoClient;
+    public ProductoIntegrationService(ProductoFeignClient productoClient){
         this.productoClient = productoClient;
     }
 
@@ -57,7 +57,6 @@ public class ProductoIntegrationService {
     @CircuitBreaker(name = "producto-service-write", fallbackMethod = "fallbackDescontarProductoStock")
     @Retry(name = "producto-service-write")
     public void descontarProductoStock(Long productoId, Integer cantidadDescontar){
-            productoClient.descontarProductoStock(productoId, cantidadDescontar);
     }
 
     //fallback para -> descontarProductoStock

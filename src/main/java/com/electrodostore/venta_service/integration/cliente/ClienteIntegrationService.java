@@ -1,7 +1,7 @@
-package com.electrodostore.venta_service.integration;
+package com.electrodostore.venta_service.integration.cliente;
 
-import com.electrodostore.venta_service.client.ClienteFeignClient;
-import com.electrodostore.venta_service.dto.ClienteIntegrationDto;
+import com.electrodostore.venta_service.integration.cliente.client.ClienteFeignClient;
+import com.electrodostore.venta_service.integration.cliente.dto.ClienteIntegrationDto;
 import com.electrodostore.venta_service.exception.ClienteNotFoundException;
 import com.electrodostore.venta_service.exception.ServiceUnavailableException;
 import feign.FeignException;

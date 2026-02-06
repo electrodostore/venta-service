@@ -1,6 +1,6 @@
-package com.electrodostore.venta_service.client;
+package com.electrodostore.venta_service.integration.producto.client;
 
-import com.electrodostore.venta_service.dto.ProductoIntegrationDto;
+import com.electrodostore.venta_service.integration.producto.dto.ProductoIntegrationDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
 
@@ -9,7 +9,7 @@ import java.util.List;
 /*Interface donde se declararán y describirán los diferentes end-pints para acceder a los
 métodos de producto-service*/
 @FeignClient(name = "producto-service")//-> Mismo nombre con el que se registró en Eureka-server
-public interface ProductoClient {
+public interface ProductoFeignClient {
 
     //Descripción del método para encontrar un producto en producto-service por su id
     @GetMapping("/productos/{productoId}")

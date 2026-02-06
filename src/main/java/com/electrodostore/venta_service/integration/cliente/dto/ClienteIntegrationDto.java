@@ -1,4 +1,4 @@
-package com.electrodostore.venta_service.dto;
+package com.electrodostore.venta_service.integration.cliente.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
