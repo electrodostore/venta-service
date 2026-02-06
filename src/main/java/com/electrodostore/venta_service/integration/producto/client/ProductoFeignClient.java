@@ -8,7 +8,8 @@ import java.util.List;
 
 /*Interface donde se declararán y describirán los diferentes end-pints para acceder a los
 métodos de producto-service*/
-@FeignClient(name = "producto-service")//-> Mismo nombre con el que se registró en Eureka-server
+@FeignClient(name = "producto-service", //-> Mismo nombre con el que se registró en Eureka-server
+    configuration = ProductoFeignConfig.class) //Definimos configuración de este Feign
 public interface ProductoFeignClient {
 
     //Descripción del método para encontrar un producto en producto-service por su id
