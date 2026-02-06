@@ -49,6 +49,13 @@ public class GlobalExceptionHandler {
                 .body(buildErrorMessage(HttpStatus.NOT_FOUND, ex.getMessage(), ex.getErrorCode().name()));
     }
 
+    //Manejador de la excepción ProductoStockInsuficiente
+    @ExceptionHandler(ProductoStockInsuficienteException.class)
+    public ResponseEntity<Map<String, Object>> handlerProductoStockInsuficiente(ProductoStockInsuficienteException ex){
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(buildErrorMessage(HttpStatus.NOT_FOUND, ex.getMessage(), ex.getErrorCode().name()));
+    }
+
     //Handler de la excepción personalizada ServiceUnavailable
     @ExceptionHandler(ServiceUnavailableException.class)
     public ResponseEntity<Map<String, Object>> handlerServiceUnavailable(ServiceUnavailableException ex){
