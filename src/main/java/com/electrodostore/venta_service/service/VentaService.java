@@ -4,8 +4,10 @@ import com.electrodostore.venta_service.dto.*;
 import com.electrodostore.venta_service.exception.ClienteNotFoundException;
 import com.electrodostore.venta_service.exception.ProductoNotFoundException;
 import com.electrodostore.venta_service.exception.VentaNotFoundException;
-import com.electrodostore.venta_service.integration.ClienteIntegrationService;
-import com.electrodostore.venta_service.integration.ProductoIntegrationService;
+import com.electrodostore.venta_service.integration.cliente.ClienteIntegrationService;
+import com.electrodostore.venta_service.integration.cliente.dto.ClienteIntegrationDto;
+import com.electrodostore.venta_service.integration.producto.ProductoIntegrationService;
+import com.electrodostore.venta_service.integration.producto.dto.ProductoIntegrationDto;
 import com.electrodostore.venta_service.model.ClienteSnapshot;
 import com.electrodostore.venta_service.model.ProductoSnapshot;
 import com.electrodostore.venta_service.model.Venta;
@@ -96,11 +98,8 @@ public class VentaService implements IVentaService{
             for(ProductoRequestDto objRequest: productosRequest){
                 if(objIntegration.getId().equals(objRequest.getId())){
 
-                    //Una vez encontremos coincidencia, debemos verificar si hay stock disponible para cubrir la cantidad comprada
-                    if(objRequest.getQuantity() > objIntegration.getStock()){
-                        //Si el stock no es suficiente -> Excepción
-                        throw new ProductoNotFoundException("El producto con id: " + objIntegration.getId() + " no tiene suficiente stock disponible para la venta");
-                    }
+                    //Descontamos la cantidad comprada al producto en el servicio Productos
+                    productoIntegration.descontarProductoStock(objIntegration.getId(), objRequest.getQuantity());
 
                     //Se calcula el subTotal de cada producto comprado en formato BigDecimal
                     BigDecimal subTotal = objIntegration.getPrice().multiply(BigDecimal.valueOf(objRequest.getQuantity()));
@@ -109,8 +108,6 @@ public class VentaService implements IVentaService{
                     productosSnapshot.add(new ProductoSnapshot(objIntegration.getId(), objIntegration.getName(), objIntegration.getPrice(),
                             objRequest.getQuantity(), subTotal, objIntegration.getDescription()));
 
-                    //Descontamos la cantidad comprada al producto en el servicio Productos
-                    productoIntegration.descontarProductoStock(objIntegration.getId(), objRequest.getQuantity());
                         
                     //Pasamos al siguiente Producto Integrado y repetimos proceso
                     break;
