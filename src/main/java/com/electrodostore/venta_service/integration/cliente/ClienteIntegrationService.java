@@ -2,9 +2,7 @@ package com.electrodostore.venta_service.integration.cliente;
 
 import com.electrodostore.venta_service.integration.cliente.client.ClienteFeignClient;
 import com.electrodostore.venta_service.integration.cliente.dto.ClienteIntegrationDto;
-import com.electrodostore.venta_service.exception.ClienteNotFoundException;
 import com.electrodostore.venta_service.exception.ServiceUnavailableException;
-import feign.FeignException;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
 import lombok.extern.slf4j.Slf4j;
@@ -37,12 +35,7 @@ public class ClienteIntegrationService {
         //Lanzamos el warning al log del proyecto indicando la activación del fallback
         log.warn("Fallback activado para clienteId={}", clienteId + " en cliente-service", ex);
 
-        //Si la excepción es porque no se pudo encontrar un cliente -> Excepción personalizada NOT_FOUND
-        if (ex instanceof FeignException.NotFound) {
-            throw new ClienteNotFoundException("No se encontró cliente con id: " + clienteId);
-        }
-
-        //Si la excepción no es NOT_FOUND, entonces estamos hablando de una excepción de infraestructura en la comunicación de los servicios -> ServiceUnavailable
+        //Excepción de infraestructura en la comunicación de los servicios -> ServiceUnavailable
         throw new ServiceUnavailableException("No se logró establecer la comunicación con cliente-service. Por favor intente más tarde");
 
     }
