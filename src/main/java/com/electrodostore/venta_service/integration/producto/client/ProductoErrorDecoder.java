@@ -76,7 +76,7 @@ public class ProductoErrorDecoder implements ErrorDecoder {
 
         } catch (IOException e) {
             //Se agrega el log indicando el problema
-            log.error("Error leyendo el body de la responde de producto-service", e);
+            log.error("Error leyendo el body de la response de producto-service", e);
             //En caso de que haya algún error en el proceso de lectura del body -> FeignException
             return FeignException.errorStatus(methodKey, response);
         }

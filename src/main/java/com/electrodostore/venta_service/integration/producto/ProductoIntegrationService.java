@@ -1,10 +1,9 @@
 package com.electrodostore.venta_service.integration.producto;
 
+import com.electrodostore.venta_service.exception.BusinessException;
 import com.electrodostore.venta_service.integration.producto.dto.ProductoIntegrationDto;
-import com.electrodostore.venta_service.exception.ProductoNotFoundException;
 import com.electrodostore.venta_service.exception.ServiceUnavailableException;
 import com.electrodostore.venta_service.integration.producto.client.ProductoFeignClient;
-import feign.FeignException;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
 import lombok.extern.slf4j.Slf4j;
@@ -40,13 +39,27 @@ public class ProductoIntegrationService {
     //Además su último parámetro debe ser un objeto Throwable que es básicamente la excepción que lo provocó
     public List<ProductoIntegrationDto> fallbackFindProductos(Set<Long> productsIds, Throwable ex){
 
-        //Agregamos le warn al log indicando que el fallback fue activado por problema de comunicación
+        //Primero filtramos las excepciones de negocio que son las que heredan de la superclase "BusinessException"
+        if (ex instanceof BusinessException be) {
+            /*
+             * El fallback recibe la excepción como Throwable por contrato de Resilience4j.
+             * Al lanzar directamente un Throwable, el compilador asume que podría tratarse
+             * de una excepción Checked y exige manejo explícito.
+             *
+             * Como las excepciones de negocio heredan de RuntimeException (Unchecked),
+             * las relanzamos como tal para que el compilador permita su propagación
+             * sin obligar a declararlas en la firma del método.
+             */
+            //El objeto be es el mismo ex solo que se le cambio el tipo estático de Throwable a BusinessException (Unchecked)
+            throw be;
+        }
+
+        //Si la excepción no es de negocio, agregamos le warn al log indicando que el fallback fue activado por problema de comunicación
         log.warn("fallback activado para producto-service", ex);
 
         //Error en la comunicación con el servicio producto -> Lo indicamos
         throw new ServiceUnavailableException("No se pudo establecer comunicación con producto-service. Por favor intente más tarde");
     }
-
 
     //Método protegido con Circuit-Breaker
     @CircuitBreaker(name = "producto-service-write", fallbackMethod = "fallbackDescontarProductoStock")
@@ -57,8 +70,12 @@ public class ProductoIntegrationService {
 
     //fallback para -> descontarProductoStock
     public void fallbackDescontarProductoStock(Long productoId, Integer cantidadDescontar, Throwable ex){
+        //Primero filtramos las excepciones de negocio que son las que heredan de la superclase "BusinessException"
+        if (ex instanceof BusinessException) {
+            throw (RuntimeException) ex;
+        }
 
-        //Agregamos le warn al log indicando que el fallback fue activado por problema de comunicación
+        //Si la excepción no es de negocio, agregamos le warn al log indicando que el fallback fue activado por problema de comunicación
         log.warn("fallback activado para producto-service -> productoId={}", productoId, ex);
 
         //Error en la comunicación con el servicio producto -> Lo indicamos
@@ -74,8 +91,12 @@ public class ProductoIntegrationService {
 
     //fallback para --> reponerProductoStock
     public void fallbackReponerStock(Long productoId, Integer cantidadReponer, Throwable ex ){
+        //Primero filtramos las excepciones de negocio que son las que heredan de la superclase "BusinessException"
+        if (ex instanceof BusinessException) {
+            throw (RuntimeException) ex;
+        }
 
-        //Agregamos le warn al log indicando que el fallback fue activado por problema de comunicación
+        //Si la excepción no es de negocio, agregamos le warn al log indicando que el fallback fue activado por problema de comunicación
         log.warn("fallback activado para producto-service -> productoId={}", productoId, ex);
 
         /*Error de infraestructura en la comunicación con el servicio
@@ -92,8 +113,12 @@ public class ProductoIntegrationService {
 
     //fallback para --> findProducto
     public ProductoIntegrationDto fallbackFindProducto(Long productoId, Throwable ex){
+        //Primero filtramos las excepciones de negocio que son las que heredan de la superclase "BusinessException"
+        if (ex instanceof BusinessException) {
+            throw (RuntimeException) ex;
+        }
 
-        //Agregamos le warn al log indicando que el fallback fue activado por problema de comunicación
+        //Si la excepción no es de negocio, agregamos le warn al log indicando que el fallback fue activado por problema de comunicación
         log.warn("fallback activado para producto-service -> productoId={}", productoId, ex);
 
         /*Error de infraestructura en la comunicación con el servicio

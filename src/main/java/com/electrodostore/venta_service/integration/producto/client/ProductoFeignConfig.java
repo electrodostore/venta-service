@@ -12,7 +12,7 @@ public class ProductoFeignConfig {
     /*Esto permitirá que antes de que Feign construya una excepción a partir de la Response con statusCode diferente a 2xx
      eche un vistazo al errorDecoder de Producto para ver si este la puede transformar a excepción de dominio*/
     @Bean
-    public ProductoErrorDecoder registrarErrorDecoder(ObjectMapper objectMapper){
+    public ProductoErrorDecoder productoErrorDecoder(){
         return new ProductoErrorDecoder();
     }
 }
