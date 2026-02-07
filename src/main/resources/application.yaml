@@ -23,14 +23,32 @@ spring:
 
 resilience4j:
   circuitbreaker:
-    instances:
-      ventaService:
+    configs:
+      default:
         slidingWindowSize: 10
         minimumNumberOfCalls: 5
         failureRateThreshold: 50
         waitDurationInOpenState: 30s
+
+    instances:
+      producto-service-read:
+        base-config: default
+        ignore-exceptions:
+          - feign.FeignException.NotFound
+          - com.electrodostore.venta_service.exception.ProductoNotFoundException
+
+      producto-service-write:
+        base-config: default
         ignoreExceptions:
           - feign.FeignException.NotFound
+          - com.electrodostore.venta_service.exception.ProductoStockInsuficienteException
+
+      cliente-service:
+        base-config: default
+        ignore-exceptions:
+          - feign.FeignException.NotFound
+          - com.electrodostore.venta_service.exception.ClienteNotFoundException
+
 
 eureka:
   client:
