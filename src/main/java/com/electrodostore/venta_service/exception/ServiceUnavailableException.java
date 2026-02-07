@@ -14,6 +14,6 @@ public class ServiceUnavailableException extends RuntimeException{
         super(message);
 
         //Se define valor al campo errorCode con el code correspondiente en el enum VentaErrorCode
-        this.errorCode = VentaErrorCode.PRODUCT_NOT_FOUND;
+        this.errorCode = VentaErrorCode.SERVICE_UNAVAILABLE;
     }
 }

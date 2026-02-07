@@ -4,7 +4,7 @@ import lombok.Getter;
 
 @Getter //Exponemos campo(s)
 //Excepción personalizada para cuando un producto no tenga suficiente stock para una determinada operación
-public class ProductoStockInsuficienteException extends RuntimeException{
+public class ProductoStockInsuficienteException extends BusinessException{
 
     //Declaramos la variable que va a guardar el respectivo errorCode de la excepción
     private final VentaErrorCode errorCode;

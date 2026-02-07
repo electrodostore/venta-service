@@ -5,7 +5,7 @@ import lombok.Getter;
 @Getter  //-> Exposición de campo(s)
 
 //Clase representativa de la excepción para cuando no se encuentre una venta
-public class VentaNotFoundException extends RuntimeException{
+public class VentaNotFoundException extends BusinessException{
 
     //ErroCode identificativo de la excepción para servicios externos a este dominio
     private final VentaErrorCode errorCode;

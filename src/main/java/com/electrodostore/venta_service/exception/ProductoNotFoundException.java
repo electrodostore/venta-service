@@ -5,7 +5,7 @@ import lombok.Getter;
 @Getter //-> Exposición de campo(s)
 
 //Exception NotFound para cuando no se logre encontrar algún producto consultado en producto-service
-public class ProductoNotFoundException extends RuntimeException{
+public class ProductoNotFoundException extends BusinessException{
 
     //ErroCode identificativo de esta excepción para otros servicios fuera de este dominio
     private final VentaErrorCode errorCode;
