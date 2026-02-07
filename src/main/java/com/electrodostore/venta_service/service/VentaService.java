@@ -39,6 +39,9 @@ public class VentaService implements IVentaService{
         //Si no hay productos a buscar, no tiene sentido buscar nada -> Excepción
         if(productosIds.isEmpty()){throw new ProductoNotFoundException("No se solicitó la información de ningún producto");}
 
+        //Si solo hay un objeto en la lista, hacemos la búsqueda por findProducto(id) y formamos la lista para retornar
+        if(productosIds.size() == 1){return List.of(productoIntegration.findProducto(productosIds.get(0)));}
+
         /*Intentamos hacer la búsqueda de los productos pasando por la capa de integración con producto-service
         donde se manejarán todas las excepcione relacionadas con esta comunicación*/
         return productoIntegration.findProductos(new HashSet<>(productosIds));
@@ -344,18 +347,20 @@ public class VentaService implements IVentaService{
             //Comprobamos la correcta carga de TODOS los productos en la lista "productosIntegration"
             verificarCargaCompletaDeProductos(productosIntegration, productosIds);
 
+            /*Ahora, procedemos a preparar los productos integrados para su persistencia en la base de datos, pasando de
+             productosIntegration a productosSnapshot, aquí también se verifica si el stock de los productos nuevos
+             es suficiente para la cantidad que se está comprando*/
+            List<ProductoSnapshot> productosSnapshot = productosIntegrationToSnapshot(objUpdated.getProductsList(), productosIntegration);
+
             /*Cuándo se confirme que hay productos VÁLIDOS en la nueva lista de productos buscados -> "productosIntegration",
-             y que todos los productos solicitados llegaron, procedemos a reponer el stock de los productos de la venta que
-             serán reemplazados*/
-            /*NOTA: Si no hay productos válidos en la nueva lista o algún producto solicitado no existe, no se llegará a este
-            punto, ya que se sabría en los filtros anteriores y en la búsqueda de "productosIntegration"*/
+             que todos los productos solicitados llegaron, y que el stock de los nuevos productos es suficiente.
+             Procedemos a reponer el stock de los productos de la venta que serán reemplazados (Los antiguos)*/
+            /*NOTA: Si no hay productos válidos en la nueva lista o algún producto solicitado no existe, o no hay stock
+            suficiente en los nuevos productos. No se llegará a este punto, ya que se sabría en los filtros anteriores
+            y en la búsqueda de "productosIntegration"*/
             reponerProductosStock(objVenta.getListProducts());
             //Vaciamos lista antigua de productos para darle paso a la nueva
             objVenta.getListProducts().clear();
-
-            /*Ahora, procedemos a preparar los productos integrados para su persistencia en la base de datos, pasando de
-             productosIntegration a productosSnapshot*/
-            List<ProductoSnapshot> productosSnapshot = productosIntegrationToSnapshot(objUpdated.getProductsList(), productosIntegration);
 
             //Cambiamos total de productos y precio total de la venta con respecto a los productos nuevos
             objVenta.setTotalItems(calcularTotalItems(productosSnapshot));
