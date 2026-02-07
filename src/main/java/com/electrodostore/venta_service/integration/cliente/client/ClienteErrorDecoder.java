@@ -21,7 +21,6 @@ public class ClienteErrorDecoder implements ErrorDecoder {
      datos: ErrorResponseDto*/
     ObjectMapper objMapper = new ObjectMapper();
 
-
     /*Método Implementado de la interfaz de Feign: ErrorDecoder, el cuál le retornará a Feign la respectiva excepción
      ya sea de dominio o FeignException dependiendo de los valores que pueda haber en el errorCode y statusCode de la response*/
     //methodKey -> Método Feign que hizo la petición y falló

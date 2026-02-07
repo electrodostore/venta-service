@@ -1,5 +1,6 @@
 package com.electrodostore.venta_service.integration.cliente;
 
+import com.electrodostore.venta_service.exception.BusinessException;
 import com.electrodostore.venta_service.integration.cliente.client.ClienteFeignClient;
 import com.electrodostore.venta_service.integration.cliente.dto.ClienteIntegrationDto;
 import com.electrodostore.venta_service.exception.ServiceUnavailableException;
@@ -31,6 +32,21 @@ public class ClienteIntegrationService {
 
     //El fallback debe tener la misma firma del método protegido, además del último parámetro Throwable
     public ClienteIntegrationDto fallbackClienteService(Long clienteId, Throwable ex) {
+
+        //Filtramos excepciones de dominio las cuales heredan de BusinessException para relanzarlas y evitar el serviceUnavailable
+        if(ex instanceof BusinessException be){
+            /*
+             * El fallback recibe la excepción como Throwable por contrato de Resilience4j.
+             * Al lanzar directamente un Throwable, el compilador asume que podría tratarse
+             * de una excepción Checked y exige manejo explícito.
+             *
+             * Como las excepciones de negocio heredan de RuntimeException (Unchecked),
+             * las relanzamos como tal para que el compilador permita su propagación
+             * sin obligar a declararlas en la firma del método.
+             */
+            //El objeto be es el mismo ex solo que se le cambio el tipo estático de Throwable a BusinessException (Unchecked)
+            throw be;
+        }
 
         //Lanzamos el warning al log del proyecto indicando la activación del fallback
         log.warn("Fallback activado para clienteId={}", clienteId + " en cliente-service", ex);
