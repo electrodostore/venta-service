@@ -29,6 +29,11 @@ public class VentaController {
         return ResponseEntity.ok(ventaService.findVentaResponse(id));
     }
 
+    @GetMapping("/traer-ventas-de-cliente/{clientId}")
+    public ResponseEntity<List<VentaResponseDto>> findClienteVentas(@PathVariable Long clientId){
+        return ResponseEntity.ok(ventaService.findClienteVentas(clientId));
+    }
+
     @PostMapping
     public ResponseEntity<VentaResponseDto> saveVenta(@RequestBody VentaRequestDto objNuevo){
         return ResponseEntity.status(HttpStatus.CREATED)

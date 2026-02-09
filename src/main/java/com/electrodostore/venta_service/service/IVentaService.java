@@ -25,4 +25,6 @@ public interface IVentaService {
     //Actualizar parcialmente una venta
     VentaResponseDto patchVenta(Long id, VentaRequestDto objUpdated);
 
+    //Método para encontrar la lista de Ventas de un determinado cliente por su id
+    List<VentaResponseDto> findClienteVentas(Long clientId);
 }

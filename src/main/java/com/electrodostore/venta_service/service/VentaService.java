@@ -389,4 +389,23 @@ public class VentaService implements IVentaService{
         //Se retorna la venta actualizada
         return buildVentaResponse(objVenta);
     }
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<VentaResponseDto> findClienteVentas(Long clientId) {
+
+        //Si no existe el cliente, lanzamos la excepción
+        findCliente(clientId);
+
+        //Lista de las ventas que comparten un determinado cliente
+        List<VentaResponseDto> listVentas = new ArrayList<>();
+
+        //Recorremos cada venta que se encontró que tiene cliente con Id=clienteId y la vamos preparando para exponerla en la vista
+        for(Venta objVenta: ventaRepo.findByClient_clientId(clientId)){
+            //Preparamos y agregamos a lista final
+            listVentas.add(buildVentaResponse(objVenta));
+        }
+
+        return listVentas;
+    }
 }
