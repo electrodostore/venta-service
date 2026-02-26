@@ -270,7 +270,7 @@ public class VentaService implements IVentaService{
 
     @Transactional
     @Override
-    public VentaResponseDto saveVenta(VentaRequestDto objNuevo) {
+    public VentaCreadaDto saveVenta(VentaRequestDto objNuevo) {
 
         //A partir de la venta enviada por el cliente, construimos Venta para persistir
         Venta objVenta = buildVentaPersistir(objNuevo);
@@ -279,7 +279,7 @@ public class VentaService implements IVentaService{
         ventaRepo.save(objVenta);
 
         //Mostramos lo registrado
-        return buildVentaResponse(objVenta);
+        return new VentaCreadaDto(objVenta.getId());
     }
 
     @Transactional

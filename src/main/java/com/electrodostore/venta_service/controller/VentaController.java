@@ -1,5 +1,6 @@
 package com.electrodostore.venta_service.controller;
 
+import com.electrodostore.venta_service.dto.VentaCreadaDto;
 import com.electrodostore.venta_service.dto.VentaRequestDto;
 import com.electrodostore.venta_service.dto.VentaResponseDto;
 import com.electrodostore.venta_service.service.IVentaService;
@@ -35,7 +36,7 @@ public class VentaController {
     }
 
     @PostMapping
-    public ResponseEntity<VentaResponseDto> saveVenta(@RequestBody VentaRequestDto objNuevo){
+    public ResponseEntity<VentaCreadaDto> saveVenta(@RequestBody VentaRequestDto objNuevo){
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ventaService.saveVenta(objNuevo));
     }

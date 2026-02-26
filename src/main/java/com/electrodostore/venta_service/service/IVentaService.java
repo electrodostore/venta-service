@@ -1,5 +1,6 @@
 package com.electrodostore.venta_service.service;
 
+import com.electrodostore.venta_service.dto.VentaCreadaDto;
 import com.electrodostore.venta_service.dto.VentaRequestDto;
 import com.electrodostore.venta_service.dto.VentaResponseDto;
 
@@ -14,7 +15,7 @@ public interface IVentaService {
     VentaResponseDto findVentaResponse(Long id);
 
     //Registrar venta
-    VentaResponseDto saveVenta(VentaRequestDto objNuevo);
+    VentaCreadaDto saveVenta(VentaRequestDto objNuevo);
 
     //Eliminar venta por Id
     void deleteVenta(Long id);
