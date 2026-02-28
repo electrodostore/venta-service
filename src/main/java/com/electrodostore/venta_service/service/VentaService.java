@@ -203,7 +203,12 @@ public class VentaService implements IVentaService{
         //Una venta no puede existir sin un cliente
         if(objRequest.getClientId() == null){throw new ClienteNotFoundException("No fue asignado ningún cliente a la venta");}
 
-        //Primero se saca la lista de los ids de los productos que se están solicitando encontrar (Lista de productos en objRequest)
+        //Buscamos el cliente dueño de la venta para verificar que existe
+        ClienteIntegrationDto cliente = findCliente(objRequest.getClientId());
+        //Preparamos Cliente para persistencia
+        ClienteSnapshot clienteSnapshot = clienteIntegrationToSnapshot(cliente);
+
+        //Ahora se saca la lista de los ids de los productos que se están solicitando encontrar (Lista de productos en objRequest)
         List<Long> productosIds = sacarProductosIds(objRequest.getProductsList());
 
         //Luego se buscan los productos a partir de la lista anterior de ids
@@ -216,10 +221,6 @@ public class VentaService implements IVentaService{
          base de datos, pasando de productos integrados a productos Snapshot*/
         List<ProductoSnapshot> productosSnapshot = productosIntegrationToSnapshot(objRequest.getProductsList(), productosIntegration);
 
-        //Buscamos el cliente dueño de la venta
-        ClienteIntegrationDto cliente = findCliente(objRequest.getClientId());
-        //Preparamos Cliente para persistencia
-        ClienteSnapshot clienteSnapshot = clienteIntegrationToSnapshot(cliente);
 
         //Creamos instancia con todos los datos y retornamos
         return(
