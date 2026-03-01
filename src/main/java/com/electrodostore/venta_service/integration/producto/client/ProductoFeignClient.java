@@ -21,6 +21,10 @@ public interface ProductoFeignClient {
     @PostMapping("/productos/traer-productos-por-ids")
     List<ProductoIntegrationDto> findProductos(@RequestBody List<Long> productsIds) ;
 
+    //Descripción del método que valida si el stock de una lista de productos es suficiente para cubrir una cierta cantidad
+    @PatchMapping("/productos/verificar-stock")
+    void validarStock(@RequestBody List<ProductoIntegrationStockDto> productosValidarStock);
+
     //Descripción del método que descuenta una cierta cantidad al stock de una lista de productos
     @PatchMapping("/productos/descontar-stock}")
     void descontarProductoStock(@RequestBody List<ProductoIntegrationStockDto> productosDescontarStock);
