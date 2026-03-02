@@ -8,6 +8,7 @@ import com.electrodostore.venta_service.integration.producto.dto.ProductoIntegra
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -103,6 +104,31 @@ public class ProductoIntegrationService {
         /*Error de infraestructura en la comunicación con el servicio
          producto -> Lo indicamos*/
         throw new ServiceUnavailableException("No se pudo establecer comunicación con producto-service. Por favor intente más tarde");
+    }
+
+    //Método protegido por CB que valida si el stock de una lista de productos es suficiente para cubrir una respectiva cantidad
+    //Si el stock de al menos un producto es insuficiente -> Excepción que interpreta este dominio para informarlo
+    @CircuitBreaker(name = "producto-service-write", fallbackMethod = "fallbackValidarProductosStock")
+    @Retry(name = "producto-service-write")
+    public void validarProductosStock(List<ProductoIntegrationStockDto> productosValidarStock){
+        productoClient.validarStock(productosValidarStock);
+    }
+
+    //Método fallback de validarProductosStock
+    public void fallbackValidarProductosStock(List<ProductoIntegrationStockDto> productosValidarStock, Throwable ex){
+        /*Filtramos las excepciones que sean de dominio (heredan de BusinessException) para evitar lanzar el
+          ServiceUnavailable que me oculte la excepción, ya que las excepciones de dominio se deben lanzar como son*/
+        if(ex instanceof BusinessException be){
+            /*Lanzamos la excepción de tipo estático BusinessException (UnChecked), ya que las que son tipo Throwable (posible Checked),
+            java me exige manejarlas explícitamente*/
+            throw be;
+        }
+
+        //Si la excepción no es de dominio, entonces lanzamos la alerta de la activación del fallback al log del proyecto
+        log.warn("fallback activado en validación de stock de productos", ex);
+
+        //Lanzamos el Service_Unavailable indicando el problema de infraestructura
+        throw new ServiceUnavailableException("No se pudo establecer la comunicación con producto-service. Intente de nuevo más tarde");
     }
 
     //Método protegido por CB para encontrar un producto en producto-service por su id
