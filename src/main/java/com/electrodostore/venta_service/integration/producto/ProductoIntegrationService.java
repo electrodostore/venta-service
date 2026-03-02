@@ -4,6 +4,7 @@ import com.electrodostore.venta_service.exception.BusinessException;
 import com.electrodostore.venta_service.integration.producto.dto.ProductoIntegrationDto;
 import com.electrodostore.venta_service.exception.ServiceUnavailableException;
 import com.electrodostore.venta_service.integration.producto.client.ProductoFeignClient;
+import com.electrodostore.venta_service.integration.producto.dto.ProductoIntegrationStockDto;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;
 import lombok.extern.slf4j.Slf4j;
@@ -61,14 +62,14 @@ public class ProductoIntegrationService {
         throw new ServiceUnavailableException("No se pudo establecer comunicación con producto-service. Por favor intente más tarde");
     }
 
-    //Método protegido con Circuit-Breaker
+    //Método protegido con Circuit-Breaker que descuenta una cierta cantidad al stock de una lista de productos
     @CircuitBreaker(name = "producto-service-write", fallbackMethod = "fallbackDescontarProductoStock")
     @Retry(name = "producto-service-write")
-    public void descontarProductoStock(Long productoId, Integer cantidadDescontar){
-        productoClient.descontarProductoStock(productoId, cantidadDescontar);
+    public void descontarProductosStock(List<ProductoIntegrationStockDto> productosDescontarStock){
+        productoClient.descontarProductoStock(productosDescontarStock);
     }
 
-    //fallback para -> descontarProductoStock
+    //fallback para -> descontarProductosStock
     public void fallbackDescontarProductoStock(Long productoId, Integer cantidadDescontar, Throwable ex){
         //Primero filtramos las excepciones de negocio que son las que heredan de la superclase "BusinessException"
         if (ex instanceof BusinessException) {
@@ -82,14 +83,14 @@ public class ProductoIntegrationService {
         throw new ServiceUnavailableException("No se pudo establecer comunicación con producto-service. Por favor intente más tarde");
     }
 
-    //Protección de método para reponer stock a un producto en el servicio producto por su id
+    //Protección de método para reponer el stock a cada producto de una lista de productos
     @CircuitBreaker(name = "producto-service-write", fallbackMethod = "fallbackReponerStock")
     @Retry(name = "producto-service-write")
-    public void reponerProductoStock(Long productoId, Integer cantidadReponer ){
-        productoClient.reponerProductoStock(productoId, cantidadReponer);
+    public void reponerProductosStock(List<ProductoIntegrationStockDto> productosReponerStock){
+        productoClient.reponerProductoStock(productosReponerStock);
     }
 
-    //fallback para --> reponerProductoStock
+    //fallback para --> reponerProductosStock
     public void fallbackReponerStock(Long productoId, Integer cantidadReponer, Throwable ex ){
         //Primero filtramos las excepciones de negocio que son las que heredan de la superclase "BusinessException"
         if (ex instanceof BusinessException) {
