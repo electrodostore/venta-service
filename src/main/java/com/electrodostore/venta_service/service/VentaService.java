@@ -8,6 +8,7 @@ import com.electrodostore.venta_service.integration.cliente.ClienteIntegrationSe
 import com.electrodostore.venta_service.integration.cliente.dto.ClienteIntegrationDto;
 import com.electrodostore.venta_service.integration.producto.ProductoIntegrationService;
 import com.electrodostore.venta_service.integration.producto.dto.ProductoIntegrationDto;
+import com.electrodostore.venta_service.integration.producto.dto.ProductoIntegrationStockDto;
 import com.electrodostore.venta_service.model.ClienteSnapshot;
 import com.electrodostore.venta_service.model.ProductoSnapshot;
 import com.electrodostore.venta_service.model.Venta;
@@ -85,6 +86,32 @@ public class VentaService implements IVentaService{
         if(productosIntegrados.size() < (new HashSet<>(productosIds)).size()){throw new ProductoNotFoundException("Uno o más productos no fueron encontrados");}
     }
 
+    /*Método propio para construir los DTO que viajarán en la integración con producto-service para hacer una operación
+     (validar, reponer, descontar, etc) sobre el stock de los diferentes productos */
+    private List<ProductoIntegrationStockDto> productosRequestToIntegration(List<ProductoRequestDto> productosRequest){
+        //Lista de productos que van a viajar en la petición a producto-service con la cantidad que se va a operar
+        List<ProductoIntegrationStockDto> productosIntegration = new ArrayList<>();
+
+        //Vamos creando los DTO de los productos a integrar a partir de los datos de los productos que mandó el cliente
+        for(ProductoRequestDto productoValidar: productosRequest){
+            productosIntegration.add(new ProductoIntegrationStockDto(productoValidar.getId(),
+                    productoValidar.getQuantity()));
+        }
+
+        //Retornamos lista de productos lista (ready) para integración
+        return productosIntegration;
+    }
+
+    /*Método propio que hace la integración con producto-service para validar si el stock de una lista de productos es
+     * suficiente para la cantidad que se quiere comprar de estos*/
+    private void verificarProductosStock(List<ProductoRequestDto> productosValidarStock){
+        //Usamos el método propio para construir la lista de DTO a partir de los datos de los productos que manda el cliente para comprar
+        List<ProductoIntegrationStockDto> productosIntegrar = productosRequestToIntegration(productosValidarStock);
+
+        //Hacemos la integración
+        productoIntegration.validarProductosStock(productosIntegrar);
+    }
+
     /*Método propio para transferir los datos de una determinada lista de productos que vengan en la petición como DTO
          para su posterior persistencia en la base de datos*/
     private List<ProductoSnapshot> productosIntegrationToSnapshot(List<ProductoRequestDto> productosRequest, List<ProductoIntegrationDto> productosIntegration){
@@ -102,7 +129,7 @@ public class VentaService implements IVentaService{
                 if(objIntegration.getId().equals(objRequest.getId())){
 
                     //Descontamos la cantidad comprada al producto en el servicio Productos
-                    productoIntegration.descontarProductoStock(objIntegration.getId(), objRequest.getQuantity());
+//                    productoIntegration.descontarProductoStock(objIntegration.getId(), objRequest.getQuantity());
 
                     //Se calcula el subTotal de cada producto comprado en formato BigDecimal
                     BigDecimal subTotal = objIntegration.getPrice().multiply(BigDecimal.valueOf(objRequest.getQuantity()));
@@ -193,7 +220,7 @@ public class VentaService implements IVentaService{
 
         //Reponemos stock a cada producto que fue traído en la colección
         for(ProductoSnapshot objSnapshot: listProductos){
-            productoIntegration.reponerProductoStock(objSnapshot.getProductId(), objSnapshot.getPurchasedQuantity());
+//            productoIntegration.reponerProductoStock(objSnapshot.getProductId(), objSnapshot.getPurchasedQuantity());
         }
     }
 
