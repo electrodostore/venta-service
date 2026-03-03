@@ -13,6 +13,7 @@ import com.electrodostore.venta_service.model.ClienteSnapshot;
 import com.electrodostore.venta_service.model.ProductoSnapshot;
 import com.electrodostore.venta_service.model.Venta;
 import com.electrodostore.venta_service.repository.IVentaRepository;
+import org.antlr.v4.runtime.misc.Array2DHashSet;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -87,7 +88,7 @@ public class VentaService implements IVentaService{
     }
 
     /*Método propio para construir los DTO que viajarán en la integración con producto-service para hacer una operación
-     (validar, reponer, descontar, etc) sobre el stock de los diferentes productos */
+     (validar, descontar, etc) sobre el stock de los diferentes productos */
     private List<ProductoIntegrationStockDto> productosRequestToIntegration(List<ProductoRequestDto> productosRequest){
         //Lista de productos que van a viajar en la petición a producto-service con la cantidad que se va a operar
         List<ProductoIntegrationStockDto> productosIntegration = new ArrayList<>();
@@ -101,6 +102,25 @@ public class VentaService implements IVentaService{
         //Retornamos lista de productos lista (ready) para integración
         return productosIntegration;
     }
+
+    /*Método propio que construye los DTO que viajan en la integración con producto-service para reponer el stock
+        de la lista de productos que se envíen como Snapshot*/
+    private List<ProductoIntegrationStockDto> productosSnapshotToIntegration(Set<ProductoSnapshot> productosSnapshot){
+        //Lista que va a almacenar los DTO de integración
+        List<ProductoIntegrationStockDto> productosIntegration = new ArrayList<>();
+
+        //Recorremos la lista de ProductoSnapshot para construir los DTO de integración a partir de los datos de estos
+        for(ProductoSnapshot productoSnapshot: productosSnapshot){
+            productosIntegration.add(
+                    //Creamos instancia de los DTO de integración y agregamos a la lista
+                    //En este caso se va a reponer la cantidad que se compró de cada producto
+                    new ProductoIntegrationStockDto(productoSnapshot.getProductId(), productoSnapshot.getPurchasedQuantity())
+            );
+        }
+
+        return productosIntegration;
+    }
+
 
     /*Método propio que hace la integración con producto-service para validar si el stock de una lista de productos es
      * suficiente para la cantidad que se quiere comprar de estos*/
@@ -119,6 +139,15 @@ public class VentaService implements IVentaService{
 
         //Con los DTO hacemos la integración y descontamos
         productoIntegration.descontarProductosStock(productosIntegration);
+    }
+
+    //Método propio para llamar al método de integración que repone una cierta cantidad de stock a cada producto una lista de productos
+    private void reponerProductosStock(Set<ProductoSnapshot> listProductos) {
+        //Construimos la lista que va a almacenar los DTO de integración que van a viajar en la petición a producto-stock
+        List<ProductoIntegrationStockDto> productosIntegration = productosSnapshotToIntegration(listProductos);
+
+        //Reponemos stock a cada producto que fue traído en la colección
+        productoIntegration.reponerProductosStock(productosIntegration);
     }
 
     /*Método propio para transferir los datos de una determinada lista de productos que vengan en la petición como DTO
@@ -224,14 +253,6 @@ public class VentaService implements IVentaService{
         return totalItems;
     }
 
-    //Método propio para llamar al método de integración que repone una cierta cantidad de stock a cada producto de la colección
-    private void reponerProductosStock(Set<ProductoSnapshot> listProductos){
-
-        //Reponemos stock a cada producto que fue traído en la colección
-        for(ProductoSnapshot objSnapshot: listProductos){
-//            productoIntegration.reponerProductoStock(objSnapshot.getProductId(), objSnapshot.getPurchasedQuantity());
-        }
-    }
 
     //Método propio para construir una Venta que será persistida en la base de datos a partir de una venta proporcionada por el cliente (view)
     private Venta buildVentaPersistir(VentaRequestDto objRequest){
