@@ -22,7 +22,7 @@ public interface ProductoFeignClient {
     List<ProductoIntegrationDto> findProductos(@RequestBody List<Long> productsIds) ;
 
     //Descripción del método que valida si el stock de una lista de productos es suficiente para cubrir una cierta cantidad
-    @PatchMapping("/productos/verificar-stock")
+    @PostMapping("/productos/verificar-stock")
     void validarStock(@RequestBody List<ProductoIntegrationStockDto> productosValidarStock);
 
     //Descripción del método que descuenta una cierta cantidad al stock de una lista de productos
