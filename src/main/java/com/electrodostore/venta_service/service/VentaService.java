@@ -112,6 +112,15 @@ public class VentaService implements IVentaService{
         productoIntegration.validarProductosStock(productosIntegrar);
     }
 
+    //Método propio que integra a producto-service para usar el método que descuenta una cierta cantidad al stock de una lista de productos
+    private void descontarProductosStock(List<ProductoRequestDto> productosRequest){
+        //Construimos los DTO de integración a partir de los datos de los productos a los que se va a descontar
+        List<ProductoIntegrationStockDto> productosIntegration = productosRequestToIntegration(productosRequest);
+
+        //Con los DTO hacemos la integración y descontamos
+        productoIntegration.descontarProductosStock(productosIntegration);
+    }
+
     /*Método propio para transferir los datos de una determinada lista de productos que vengan en la petición como DTO
          para su posterior persistencia en la base de datos*/
     private List<ProductoSnapshot> productosIntegrationToSnapshot(List<ProductoRequestDto> productosRequest, List<ProductoIntegrationDto> productosIntegration){
