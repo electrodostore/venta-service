@@ -153,6 +153,9 @@ public class VentaService implements IVentaService{
     /*Método propio para transferir los datos de una determinada lista de productos que vengan en la petición como DTO
          para su posterior persistencia en la base de datos*/
     private List<ProductoSnapshot> productosIntegrationToSnapshot(List<ProductoRequestDto> productosRequest, List<ProductoIntegrationDto> productosIntegration){
+        //Validamos que el stock de cada producto es suficiente para cubrir la cantidad que se quiere comprar
+        verificarProductosStock(productosRequest);
+
         //Lista que va a almacenar los diferentes productos una vez estén listos para ser persistidos en la base de datos (Snapshots)
         List<ProductoSnapshot> productosSnapshot = new ArrayList<>();
 
@@ -166,9 +169,6 @@ public class VentaService implements IVentaService{
             for(ProductoRequestDto objRequest: productosRequest){
                 if(objIntegration.getId().equals(objRequest.getId())){
 
-                    //Descontamos la cantidad comprada al producto en el servicio Productos
-//                    productoIntegration.descontarProductoStock(objIntegration.getId(), objRequest.getQuantity());
-
                     //Se calcula el subTotal de cada producto comprado en formato BigDecimal
                     BigDecimal subTotal = objIntegration.getPrice().multiply(BigDecimal.valueOf(objRequest.getQuantity()));
 
@@ -176,12 +176,15 @@ public class VentaService implements IVentaService{
                     productosSnapshot.add(new ProductoSnapshot(objIntegration.getId(), objIntegration.getName(), objIntegration.getPrice(),
                             objRequest.getQuantity(), subTotal, objIntegration.getDescription()));
 
-                        
                     //Pasamos al siguiente Producto Integrado y repetimos proceso
                     break;
                 }
             }
         }
+
+        /*Si no hay ningún problema en la creación de los Snapshot que se van a persistir en la base de datos, descontamos
+         la respectiva cantidad en producto-service al stock de cada producto que se compró */
+        descontarProductosStock(productosRequest);
 
         //Finalmente, retornamos lista de ProductosSnapshot
         return productosSnapshot;
