@@ -26,7 +26,7 @@ public interface ProductoFeignClient {
     void validarStock(@RequestBody List<ProductoIntegrationStockDto> productosValidarStock);
 
     //Descripción del método que descuenta una cierta cantidad al stock de una lista de productos
-    @PatchMapping("/productos/descontar-stock}")
+    @PatchMapping("/productos/descontar-stock")
     void descontarProductoStock(@RequestBody List<ProductoIntegrationStockDto> productosDescontarStock);
 
     //Descripción del método que se usa para reponer stock a una lista de productos ya sea porque se eliminó o se actualizó la venta donde estaban
