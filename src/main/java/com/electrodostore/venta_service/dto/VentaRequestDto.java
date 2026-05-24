@@ -16,7 +16,6 @@ import java.util.List;
 //Clase Dto. para transferir los datos que envía el cliente (view) a la clase que los va a persistir en la db
 public class VentaRequestDto {
 
-    private LocalDate date;
     //Lista de cada id y cantidad del producto que se va a agregar a la venta
     private List<ProductoRequestDto> productsList = new ArrayList<>();
     //Id del cliente dueño de la venta

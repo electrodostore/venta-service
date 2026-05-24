@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.*;
 
 @Service
@@ -288,7 +289,7 @@ public class VentaService implements IVentaService{
         return(
                 new Venta(
                     null, //El id no sé manda OBVIAMENTE
-                    objRequest.getDate(),
+                    LocalDate.now(),
                     calcularTotalItems(productosSnapshot),
                     calcularTotalPrice(productosSnapshot),
                     new HashSet<>(productosSnapshot), //Colección de productos
