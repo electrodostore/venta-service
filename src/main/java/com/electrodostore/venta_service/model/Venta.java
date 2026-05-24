@@ -53,5 +53,8 @@ public class Venta {
    la cual pertenece a un servicio externo */
     @Embedded
     private ClienteSnapshot client;
+    //Estado de la venta
+    @Column(nullable = false)
+    private VentaStatus status;
 
 }

@@ -12,6 +12,7 @@ import com.electrodostore.venta_service.integration.producto.dto.ProductoIntegra
 import com.electrodostore.venta_service.model.ClienteSnapshot;
 import com.electrodostore.venta_service.model.ProductoSnapshot;
 import com.electrodostore.venta_service.model.Venta;
+import com.electrodostore.venta_service.model.VentaStatus;
 import com.electrodostore.venta_service.repository.IVentaRepository;
 import org.antlr.v4.runtime.misc.Array2DHashSet;
 import org.springframework.stereotype.Service;
@@ -290,7 +291,8 @@ public class VentaService implements IVentaService{
                     calcularTotalItems(productosSnapshot),
                     calcularTotalPrice(productosSnapshot),
                     new HashSet<>(productosSnapshot), //Colección de productos
-                    clienteSnapshot //Cliente de venta
+                    clienteSnapshot, //Cliente de venta
+                    VentaStatus.PENDING //Inicialmente, se marca la venta como pendiente
                 )
         );
     }
@@ -335,6 +337,9 @@ public class VentaService implements IVentaService{
 
         //A partir de la venta enviada por el cliente, construimos Venta para persistir
         Venta objVenta = buildVentaPersistir(objNuevo);
+
+        //Antes de registrar, se marca la venta como completada
+        objVenta.setStatus(VentaStatus.COMPLETED);
 
         //Guardamos registro
         ventaRepo.save(objVenta);
