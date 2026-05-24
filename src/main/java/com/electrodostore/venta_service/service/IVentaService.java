@@ -20,12 +20,6 @@ public interface IVentaService {
     //Borrado lógico de venta para evitar perdida de registros históricos
     void cancelVenta(Long id);
 
-    //Actualizar completamente una venta
-    VentaResponseDto updateVenta(Long id, VentaRequestDto objUpdated);
-
-    //Actualizar parcialmente una venta
-    VentaResponseDto patchVenta(Long id, VentaRequestDto objUpdated);
-
     //Método para encontrar la lista de Ventas de un determinado cliente por su id
     List<VentaResponseDto> findClienteVentas(Long clientId);
 }
