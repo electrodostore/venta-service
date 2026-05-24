@@ -17,8 +17,8 @@ public interface IVentaService {
     //Registrar venta
     VentaCreadaDto saveVenta(VentaRequestDto objNuevo);
 
-    //Eliminar venta por Id
-    void deleteVenta(Long id);
+    //Borrado lógico de venta para evitar perdida de registros históricos
+    void cancelVenta(Long id);
 
     //Actualizar completamente una venta
     VentaResponseDto updateVenta(Long id, VentaRequestDto objUpdated);

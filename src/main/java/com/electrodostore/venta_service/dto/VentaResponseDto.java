@@ -1,5 +1,6 @@
 package com.electrodostore.venta_service.dto;
 
+import com.electrodostore.venta_service.model.VentaStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -21,6 +22,7 @@ public class VentaResponseDto {
     private LocalDate date;
     private Integer totalItems;
     private BigDecimal totalPrice;
+    private VentaStatus status;
 
     //También se exponen los DTO de los objetos embebidos de producto y cliente
     private List<ProductoResponseDto> productsList = new ArrayList<>();

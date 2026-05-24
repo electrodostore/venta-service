@@ -41,9 +41,9 @@ public class VentaController {
                 .body(ventaService.saveVenta(objNuevo));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteVenta(@PathVariable Long id){
-        ventaService.deleteVenta(id);
+    @DeleteMapping("/cancel-venta/{id}")
+    public ResponseEntity<Void> cancelVenta(@PathVariable Long id){
+        ventaService.cancelVenta(id);
 
         return ResponseEntity.noContent().build();
     }

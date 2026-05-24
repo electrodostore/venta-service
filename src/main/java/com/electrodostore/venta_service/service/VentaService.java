@@ -230,6 +230,7 @@ public class VentaService implements IVentaService{
         objVentaResponse.setProductsList(productosSnapshotToResponse(new ArrayList<>(objVenta.getListProducts())));
         //Método propio para preparar cliente
         objVentaResponse.setClient(clienteSnapshotToResponse(objVenta.getClient()));
+        objVentaResponse.setStatus(objVenta.getStatus());
 
         //Retorno de venta
         return objVentaResponse;
@@ -297,6 +298,7 @@ public class VentaService implements IVentaService{
         );
     }
 
+
     //Método propio para buscar una venta desde la base de datos para operaciones internas
     @Transactional(readOnly = true)
     protected Venta findVenta(Long id){
@@ -350,14 +352,13 @@ public class VentaService implements IVentaService{
 
     @Transactional
     @Override
-    public void deleteVenta(Long id) {
+    public void cancelVenta(Long id) {
         Venta objVenta = findVenta(id);
 
         //Reponemos al stock de cada producto la cantidad que fue comprada
         reponerProductosStock(objVenta.getListProducts());
 
-        ventaRepo.delete(objVenta);
-
+        objVenta.setStatus(VentaStatus.CANCELED);
     }
 
     @Transactional
