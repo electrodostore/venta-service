@@ -1,7 +1,7 @@
 package com.electrodostore.venta_service.service;
 
+import com.electrodostore.venta_service.dto.ProductoRequestDto;
 import com.electrodostore.venta_service.dto.VentaCreadaDto;
-import com.electrodostore.venta_service.dto.VentaRequestDto;
 import com.electrodostore.venta_service.dto.VentaResponseDto;
 
 import java.util.List;
@@ -14,8 +14,13 @@ public interface IVentaService {
     //Traer venta por Id
     VentaResponseDto findVentaResponse(Long id);
 
-    //Registrar venta
-    VentaCreadaDto saveVenta(VentaRequestDto objNuevo);
+    /**
+     * Registra ventas del cliente autenticado.
+     *
+     * El cliente se obtendrá del Security Context para evitar que
+     * clientes registren ventas a nombre de otros clientes.
+     */
+    VentaCreadaDto saveVenta(List<ProductoRequestDto> productsList);
 
     //Borrado lógico de venta para evitar perdida de registros históricos
     void cancelVenta(Long id);

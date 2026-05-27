@@ -1,7 +1,7 @@
 package com.electrodostore.venta_service.controller;
 
+import com.electrodostore.venta_service.dto.ProductoRequestDto;
 import com.electrodostore.venta_service.dto.VentaCreadaDto;
-import com.electrodostore.venta_service.dto.VentaRequestDto;
 import com.electrodostore.venta_service.dto.VentaResponseDto;
 import com.electrodostore.venta_service.service.IVentaService;
 import org.springframework.http.HttpStatus;
@@ -36,9 +36,9 @@ public class VentaController {
     }
 
     @PostMapping
-    public ResponseEntity<VentaCreadaDto> saveVenta(@RequestBody VentaRequestDto objNuevo){
+    public ResponseEntity<VentaCreadaDto> saveVenta(@RequestBody List<ProductoRequestDto> productsList){
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ventaService.saveVenta(objNuevo));
+                .body(ventaService.saveVenta(productsList));
     }
 
     @DeleteMapping("/cancel-venta/{id}")

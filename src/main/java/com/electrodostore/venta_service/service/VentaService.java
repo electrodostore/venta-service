@@ -3,6 +3,7 @@ package com.electrodostore.venta_service.service;
 import com.electrodostore.venta_service.dto.*;
 import com.electrodostore.venta_service.exception.ClienteNotFoundException;
 import com.electrodostore.venta_service.exception.ProductoNotFoundException;
+import com.electrodostore.venta_service.exception.UnauthorizedOperationException;
 import com.electrodostore.venta_service.exception.VentaNotFoundException;
 import com.electrodostore.venta_service.integration.cliente.ClienteIntegrationService;
 import com.electrodostore.venta_service.integration.cliente.dto.ClienteIntegrationDto;
@@ -15,6 +16,9 @@ import com.electrodostore.venta_service.model.Venta;
 import com.electrodostore.venta_service.model.VentaStatus;
 import com.electrodostore.venta_service.repository.IVentaRepository;
 import org.antlr.v4.runtime.misc.Array2DHashSet;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -261,18 +265,17 @@ public class VentaService implements IVentaService{
 
 
     //Método propio para construir una Venta que será persistida en la base de datos a partir de una venta proporcionada por el cliente (view)
-    private Venta buildVentaPersistir(VentaRequestDto objRequest){
+    private Venta buildVentaPersistir(List<ProductoRequestDto> productsList){
 
-        //Una venta no puede existir sin un cliente
-        if(objRequest.getClientId() == null){throw new ClienteNotFoundException("No fue asignado ningún cliente a la venta");}
-
-        //Buscamos el cliente dueño de la venta para verificar que existe
-        ClienteIntegrationDto cliente = findCliente(objRequest.getClientId());
+        //Busca el cliente autenticado dueño de la venta
+        ClienteIntegrationDto cliente = findCliente(
+                getAuthenticatedClientId()
+        );
         //Preparamos Cliente para persistencia
         ClienteSnapshot clienteSnapshot = clienteIntegrationToSnapshot(cliente);
 
         //Ahora se saca la lista de los ids de los productos que se están solicitando encontrar (Lista de productos en objRequest)
-        List<Long> productosIds = sacarProductosIds(objRequest.getProductsList());
+        List<Long> productosIds = sacarProductosIds(productsList);
 
         //Luego se buscan los productos a partir de la lista anterior de ids
         List<ProductoIntegrationDto> productosIntegration = findProductos(productosIds);
@@ -282,7 +285,7 @@ public class VentaService implements IVentaService{
 
         /*Una vez confirmado que todos los productos llegaron, procedemos a prepararlos para su persistencia en la
          base de datos, pasando de productos integrados a productos Snapshot*/
-        List<ProductoSnapshot> productosSnapshot = productosIntegrationToSnapshot(objRequest.getProductsList(), productosIntegration);
+        List<ProductoSnapshot> productosSnapshot = productosIntegrationToSnapshot(productsList, productosIntegration);
 
 
         //Creamos instancia con todos los datos y retornamos
@@ -297,6 +300,26 @@ public class VentaService implements IVentaService{
                     VentaStatus.PENDING //Inicialmente, se marca la venta como pendiente
                 )
         );
+    }
+
+    //Extrae la identidad de cliente autenticado y retorna su id
+    private Long getAuthenticatedClientId(){
+        //Busca objeto con la información del token JWT
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        //Saca objeto Principal con todos los claims almacenamos en el token
+        Jwt principal = (Jwt) authentication.getPrincipal();
+
+        //Busca identidad de negocio del usuario
+        Number clientId = principal.getClaim("clientId");
+
+        //Valida que el usuario realmente sea cliente
+        if(clientId == null){throw new UnauthorizedOperationException("El usuario no es cliente, por lo que " +
+                "no puede realizar la operación");
+        }
+
+        return  clientId.longValue();
+
     }
 
 
@@ -336,10 +359,10 @@ public class VentaService implements IVentaService{
 
     @Transactional
     @Override
-    public VentaCreadaDto saveVenta(VentaRequestDto objNuevo) {
+    public VentaCreadaDto saveVenta(List<ProductoRequestDto> productsList) {
 
         //A partir de la venta enviada por el cliente, construimos Venta para persistir
-        Venta objVenta = buildVentaPersistir(objNuevo);
+        Venta objVenta = buildVentaPersistir(productsList);
 
         //Antes de registrar, se marca la venta como completada
         objVenta.setStatus(VentaStatus.COMPLETED);
