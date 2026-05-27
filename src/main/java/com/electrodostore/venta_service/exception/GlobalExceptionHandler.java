@@ -63,4 +63,10 @@ public class GlobalExceptionHandler {
                 .body(buildErrorMessage(HttpStatus.SERVICE_UNAVAILABLE, ex.getMessage(), ex.getErrorCode().name()));
     }
 
+    @ExceptionHandler(UnauthorizedOperationException.class)
+    public ResponseEntity<Map<String, Object>> handlerUnauthorizedOperation(UnauthorizedOperationException ex){
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(buildErrorMessage(HttpStatus.FORBIDDEN, ex.getMessage(), ex.getErrorCode().name()));
+    }
+
 }
