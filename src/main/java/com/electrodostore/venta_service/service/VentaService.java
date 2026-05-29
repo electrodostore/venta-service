@@ -379,10 +379,15 @@ public class VentaService implements IVentaService{
     public void cancelVenta(Long id) {
         Venta objVenta = findVenta(id);
 
-        //Reponemos al stock de cada producto la cantidad que fue comprada
-        reponerProductosStock(objVenta.getListProducts());
+        //Valida que la venta realmente le pertenezca al cliente autenticado
+        if(!objVenta.getClient().getClientId().equals(getAuthenticatedClientId())){
+            throw new UnauthorizedOperationException("Cliente no autorizado para realizar la operación");
+        }
 
         objVenta.setStatus(VentaStatus.CANCELED);
+
+        //Reponemos al stock de cada producto la cantidad que fue comprada
+        reponerProductosStock(objVenta.getListProducts());
     }
 
     @Transactional(readOnly = true)
