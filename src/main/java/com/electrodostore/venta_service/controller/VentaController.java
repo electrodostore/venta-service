@@ -4,6 +4,10 @@ import com.electrodostore.venta_service.dto.ProductoRequestDto;
 import com.electrodostore.venta_service.dto.VentaCreadaDto;
 import com.electrodostore.venta_service.dto.VentaResponseDto;
 import com.electrodostore.venta_service.service.IVentaService;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
+import org.hibernate.validator.constraints.br.CNPJ;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -36,7 +40,7 @@ public class VentaController {
     }
 
     @PostMapping
-    public ResponseEntity<VentaCreadaDto> saveVenta(@RequestBody List<ProductoRequestDto> productsList){
+    public ResponseEntity<VentaCreadaDto> saveVenta(@RequestBody @NotEmpty List<@NotNull @Valid ProductoRequestDto> productsList){
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ventaService.saveVenta(productsList));
     }
