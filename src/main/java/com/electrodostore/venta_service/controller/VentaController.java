@@ -34,25 +34,25 @@ public class VentaController {
         return ResponseEntity.ok(ventaService.findVentaResponse(id));
     }
 
-    @GetMapping("/traer-ventas-de-cliente/{clientId}")
+    @GetMapping("/cliente/{clientId}")
     public ResponseEntity<List<VentaResponseDto>> findClienteVentas(@PathVariable Long clientId){
         return ResponseEntity.ok(ventaService.findClienteVentas(clientId));
     }
 
     @PostMapping
-    public ResponseEntity<VentaCreadaDto> saveVenta(@RequestBody @NotEmpty List<@NotNull @Valid ProductoRequestDto> productsList){
+    public ResponseEntity<VentaCreadaDto> createVenta(@RequestBody @NotEmpty List<@NotNull @Valid ProductoRequestDto> productsList){
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ventaService.saveVenta(productsList));
     }
 
-    @DeleteMapping("/{id}/cancel-venta")
+    @PatchMapping("/{id}/cancel")
     public ResponseEntity<Void> cancelVenta(@PathVariable Long id){
         ventaService.cancelVenta(id);
 
         return ResponseEntity.noContent().build();
     }
 
-    @DeleteMapping("/{id}/admin/cancel-venta")
+    @PatchMapping("/{id}/admin/cancel")
     public ResponseEntity<Void> cancelVentaByAdmin(@PathVariable Long id){
         ventaService.cancelVentaByAdmin(id);
 
