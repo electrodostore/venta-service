@@ -25,6 +25,9 @@ public interface IVentaService {
     //Borrado lógico de venta para evitar perdida de registros históricos
     void cancelVenta(Long id);
 
+    //Borrado administrativo y lógico de venta
+    void cancelVentaByAdmin(Long id);
+
     //Método para encontrar la lista de Ventas de un determinado cliente por su id
     List<VentaResponseDto> findClienteVentas(Long clientId);
 }

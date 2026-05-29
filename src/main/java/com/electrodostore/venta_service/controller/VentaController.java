@@ -41,10 +41,18 @@ public class VentaController {
                 .body(ventaService.saveVenta(productsList));
     }
 
-    @DeleteMapping("/cancel-venta/{id}")
+    @DeleteMapping("/{id}/cancel-venta")
     public ResponseEntity<Void> cancelVenta(@PathVariable Long id){
         ventaService.cancelVenta(id);
 
         return ResponseEntity.noContent().build();
     }
+
+    @DeleteMapping("/{id}/admin/cancel-venta")
+    public ResponseEntity<Void> cancelVentaByAdmin(@PathVariable Long id){
+        ventaService.cancelVentaByAdmin(id);
+
+        return ResponseEntity.noContent().build();
+    }
+
 }

@@ -390,6 +390,17 @@ public class VentaService implements IVentaService{
         reponerProductosStock(objVenta.getListProducts());
     }
 
+    @Transactional
+    @Override
+    public void cancelVentaByAdmin(Long id) {
+        Venta objVenta = findVenta(id);
+
+        objVenta.setStatus(VentaStatus.CANCELED);
+
+        //Reponemos al stock de cada producto la cantidad que fue comprada
+        reponerProductosStock(objVenta.getListProducts());
+    }
+
     @Transactional(readOnly = true)
     @Override
     public List<VentaResponseDto> findClienteVentas(Long clientId) {
