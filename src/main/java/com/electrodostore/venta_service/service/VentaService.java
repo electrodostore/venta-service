@@ -78,7 +78,7 @@ public class VentaService implements IVentaService{
         List<Long> productosIds = new ArrayList<>();
 
         //Agregamos cada ID a la lista productosIds para su posterior búsqueda
-        for(ProductoRequestDto productoRequest: listProductos){productosIds.add(productoRequest.getId());}
+        for(ProductoRequestDto productoRequest: listProductos){productosIds.add(productoRequest.id());}
 
         return productosIds;
     }
@@ -101,8 +101,8 @@ public class VentaService implements IVentaService{
 
         //Vamos creando los DTO de los productos a integrar a partir de los datos de los productos que mandó el cliente
         for(ProductoRequestDto productoValidar: productosRequest){
-            productosIntegration.add(new ProductoIntegrationStockDto(productoValidar.getId(),
-                    productoValidar.getQuantity()));
+            productosIntegration.add(new ProductoIntegrationStockDto(productoValidar.id(),
+                    productoValidar.quantity()));
         }
 
         //Retornamos lista de productos lista (ready) para integración
@@ -173,14 +173,14 @@ public class VentaService implements IVentaService{
 
             //Y vamos recorriendo la lista de los productosRequest hasta encontrar el que coincida en ID con cada producto integrado
             for(ProductoRequestDto objRequest: productosRequest){
-                if(objIntegration.getId().equals(objRequest.getId())){
+                if(objIntegration.getId().equals(objRequest.id())){
 
                     //Se calcula el subTotal de cada producto comprado en formato BigDecimal
-                    BigDecimal subTotal = objIntegration.getPrice().multiply(BigDecimal.valueOf(objRequest.getQuantity()));
+                    BigDecimal subTotal = objIntegration.getPrice().multiply(BigDecimal.valueOf(objRequest.quantity()));
 
                     //Una vez pasados los filtros anteriores, podemos crear y agregar el Snapshot a la lista de Snapshots finales
                     productosSnapshot.add(new ProductoSnapshot(objIntegration.getId(), objIntegration.getName(), objIntegration.getPrice(),
-                            objRequest.getQuantity(), subTotal, objIntegration.getDescription()));
+                            objRequest.quantity(), subTotal, objIntegration.getDescription()));
 
                     //Pasamos al siguiente Producto Integrado y repetimos proceso
                     break;
@@ -224,21 +224,17 @@ public class VentaService implements IVentaService{
     //Método propio para construir una Venta que viaje como Response a partir de una que vino desde la base de datos
     private VentaResponseDto buildVentaResponse(Venta objVenta){
         //Se saca el objeto de VentaResponse
-        VentaResponseDto objVentaResponse = new VentaResponseDto();
-
-        //Carga de datos
-        objVentaResponse.setId(objVenta.getId());
-        objVentaResponse.setDate(objVenta.getDate());
-        objVentaResponse.setTotalItems(objVenta.getTotalItems());
-        objVentaResponse.setTotalPrice(objVenta.getTotalPrice());
-        //Método propio para preparar productos
-        objVentaResponse.setProductsList(productosSnapshotToResponse(new ArrayList<>(objVenta.getListProducts())));
-        //Método propio para preparar cliente
-        objVentaResponse.setClient(clienteSnapshotToResponse(objVenta.getClient()));
-        objVentaResponse.setStatus(objVenta.getStatus());
-
-        //Retorno de venta
-        return objVentaResponse;
+        return new VentaResponseDto(
+                objVenta.getId(),
+                objVenta.getDate(),
+                objVenta.getTotalItems(),
+                objVenta.getTotalPrice(),
+                objVenta.getStatus(),
+                //Método propio para preparar productos
+                productosSnapshotToResponse(new ArrayList<>(objVenta.getListProducts())),
+                //Método propio para preparar cliente
+                clienteSnapshotToResponse(objVenta.getClient())
+        );
     }
 
     //Método propio para calcular el valor total de una venta a partir de los subtotales de sus productos
