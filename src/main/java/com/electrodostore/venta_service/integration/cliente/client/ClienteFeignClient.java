@@ -14,6 +14,6 @@ public interface ClienteFeignClient {
      * Consulta los datos de un cliente y los trae si el
      * cliente está habilitado.
      */
-    @GetMapping("/clientes/{clientId}/availables")
+    @GetMapping("/clientes/{clientId}/enabled")
     ClienteIntegrationDto foundCliente(@PathVariable Long clientId);
 }
