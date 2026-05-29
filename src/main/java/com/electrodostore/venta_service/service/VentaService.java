@@ -401,9 +401,6 @@ public class VentaService implements IVentaService{
     @Override
     public List<VentaResponseDto> findClienteVentas(Long clientId) {
 
-        //Si no existe el cliente, lanzamos la excepción
-        findCliente(clientId);
-
         //Lista de las ventas que comparten un determinado cliente
         List<VentaResponseDto> listVentas = new ArrayList<>();
 
