@@ -11,8 +11,6 @@ import java.math.BigDecimal;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-/*/Esta clase me va a recibir los datos que sean enviados desde producto-service para después copiarlos al
-correspondiente Snapshot y persistirlos en la base de datos*/
 public class ProductoIntegrationDto {
 
     private Long id;

@@ -9,8 +9,6 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-/*/Esta clase me va a recibir los datos que sean enviados desde cliente-service para después copiarlos al
-correspondiente Snapshot y persistirlos en la base de datos*/
 public class ClienteIntegrationDto {
 
     private Long id;

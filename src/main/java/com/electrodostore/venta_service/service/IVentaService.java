@@ -8,26 +8,33 @@ import java.util.List;
 
 public interface IVentaService {
 
-    //Traer todas las ventas
+    /**
+     * Consultas administrativa de ventas.
+     */
     List<VentaResponseDto> findAllVentas();
-
-    //Traer venta por Id
     VentaResponseDto findVentaResponse(Long id);
 
     /**
      * Registra ventas del cliente autenticado.
      *
      * El cliente se obtendrá del Security Context para evitar que
-     * clientes registren ventas a nombre de otros clientes.
+     * clientes registren ventas en nombre de otros clientes
+     * sin autorización
      */
     VentaCreadaDto saveVenta(List<ProductoRequestDto> productsList);
 
-    //Borrado lógico de venta para evitar perdida de registros históricos
+    /**
+     * Cancela una venta del cliente autenticado.
+     */
     void cancelVenta(Long id);
 
-    //Borrado administrativo y lógico de venta
+    /**
+     * Cancela una venta mediante una operación administrativa.
+     */
     void cancelVentaByAdmin(Long id);
 
-    //Método para encontrar la lista de Ventas de un determinado cliente por su id
+    /**
+     * Consulta las ventas asociadas a un cliente.
+     */
     List<VentaResponseDto> findClienteVentas(Long clientId);
 }

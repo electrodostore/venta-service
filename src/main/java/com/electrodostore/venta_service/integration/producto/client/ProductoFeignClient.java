@@ -7,29 +7,25 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-/*Interface donde se declararán y describirán los diferentes end-pints para acceder a los
-métodos de producto-service*/
-@FeignClient(name = "producto-service", //-> Mismo nombre con el que se registró en Eureka-server
-    configuration = ProductoFeignConfig.class) //Definimos configuración de este Feign
+/**
+ * Cliente Feign para comunicarse con producto-service
+ */
+@FeignClient(name = "producto-service",
+    configuration = ProductoFeignConfig.class)
 public interface ProductoFeignClient {
 
-    //Descripción del método para encontrar un producto en producto-service por su id
     @GetMapping("/productos/{productoId}")
     ProductoIntegrationDto findProducto(@PathVariable Long productoId);
 
-    //Descripción del método que traer una lista de productos a partir de sus ids
     @PostMapping("/productos/search")
     List<ProductoIntegrationDto> findProductos(@RequestBody List<Long> productsIds) ;
 
-    //Descripción del método que valida si el stock de una lista de productos es suficiente para cubrir una cierta cantidad
     @PostMapping("/productos/stock/verificar")
     void validarStock(@RequestBody List<ProductoIntegrationStockDto> productosValidarStock);
 
-    //Descripción del método que descuenta una cierta cantidad al stock de una lista de productos
     @PatchMapping("/productos/stock/descontar")
     void descontarProductoStock(@RequestBody List<ProductoIntegrationStockDto> productosDescontarStock);
 
-    //Descripción del método que se usa para reponer stock a una lista de productos ya sea porque se eliminó o se actualizó la venta donde estaban
     @PatchMapping("/productos/stock/reponer")
     void reponerProductoStock(@RequestBody List<ProductoIntegrationStockDto> productosReponerStock);
 

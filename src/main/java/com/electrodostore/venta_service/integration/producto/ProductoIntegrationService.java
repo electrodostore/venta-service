@@ -15,141 +15,115 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-//Slf4j provee un logger para establecer eventos y errores en el log del proyecto
 @Slf4j
 @Service
 public class ProductoIntegrationService {
 
-    //Inyección de dependencia por constructor para el cliente de producto-service
     private final ProductoFeignClient productoClient;
     public ProductoIntegrationService(ProductoFeignClient productoClient){
         this.productoClient = productoClient;
     }
 
-    //Método protegido con Circuit-Breaker para acceder como cliente al servicio producto
-    //Si hay algún problema en la comunicación con producto-service o si el circuito está: open -> fallbackMethod
-    //El fallbackMethod sirve como plan-B en caso de alguna excepción en la ejecución de este método
-    /*En caso de error el @Retry reintenta la petición un determinado número de veces para no ir directamente al
-    fallbackMethod sino darle como otras oportunidades a la petición de realizarse*/
+    /**
+     * Circuit Breaker para operaciones de lectura sobre producto-service.
+     */
     @CircuitBreaker(name = "producto-service-read", fallbackMethod = "fallbackFindProductos")
     @Retry(name = "producto-service-read")
     public List<ProductoIntegrationDto> findProductos(Set<Long> productsIds){
         return productoClient.findProductos(new ArrayList<>(productsIds));
     }
 
-    //Definimos fallbackMethod que tiene que tener la misma firma que el método protegido
-    //Además su último parámetro debe ser un objeto Throwable que es básicamente la excepción que lo provocó
     public List<ProductoIntegrationDto> fallbackFindProductos(Set<Long> productsIds, Throwable ex){
 
-        //Primero filtramos las excepciones de negocio que son las que heredan de la superclase "BusinessException"
+        // Propaga excepciones de negocio sin modificaciones.
         if (ex instanceof BusinessException be) {
-            /*
-             * El fallback recibe la excepción como Throwable por contrato de Resilience4j.
-             * Al lanzar directamente un Throwable, el compilador asume que podría tratarse
-             * de una excepción Checked y exige manejo explícito.
-             *
-             * Como las excepciones de negocio heredan de RuntimeException (Unchecked),
-             * las relanzamos como tal para que el compilador permita su propagación
-             * sin obligar a declararlas en la firma del método.
-             */
-            //El objeto be es el mismo ex solo que se le cambio el tipo estático de Throwable a BusinessException (Unchecked)
             throw be;
         }
 
-        //Si la excepción no es de negocio, agregamos le warn al log indicando que el fallback fue activado por problema de comunicación
+        //Informa problema de infraestructura en la comunicación
         log.warn("fallback activado para producto-service", ex);
-
-        //Error en la comunicación con el servicio producto -> Lo indicamos
         throw new ServiceUnavailableException("No se pudo establecer comunicación con producto-service. Por favor intente más tarde");
     }
 
-    //Método protegido con Circuit-Breaker que descuenta una cierta cantidad al stock de una lista de productos
+    /**
+     * Circuit Breaker para descontar stock de
+     * productos en producto-service
+     */
     @CircuitBreaker(name = "producto-service-write", fallbackMethod = "fallbackDescontarProductoStock")
     @Retry(name = "producto-service-write")
     public void descontarProductosStock(List<ProductoIntegrationStockDto> productosDescontarStock){
         productoClient.descontarProductoStock(productosDescontarStock);
     }
 
-    //fallback para -> descontarProductosStock
-    public void fallbackDescontarProductoStock(Long productoId, Integer cantidadDescontar, Throwable ex){
-        //Primero filtramos las excepciones de negocio que son las que heredan de la superclase "BusinessException"
-        if (ex instanceof BusinessException) {
-            throw (RuntimeException) ex;
+    public void fallbackDescontarProductoStock(List<ProductoIntegrationStockDto> productosDescontarStock, Throwable ex){
+        // Propaga excepciones de negocio sin modificaciones.
+        if (ex instanceof BusinessException be) {
+            throw be;
         }
 
-        //Si la excepción no es de negocio, agregamos le warn al log indicando que el fallback fue activado por problema de comunicación
-        log.warn("fallback activado para producto-service -> productoId={}", productoId, ex);
-
-        //Error en la comunicación con el servicio producto -> Lo indicamos
+        //Informa del error en la comunicación
+        log.warn("fallback activado para producto-service", ex);
         throw new ServiceUnavailableException("No se pudo establecer comunicación con producto-service. Por favor intente más tarde");
     }
 
-    //Protección de método para reponer el stock a cada producto de una lista de productos
+    /**
+     * Reponer stock de productos en producto-service
+     * */
     @CircuitBreaker(name = "producto-service-write", fallbackMethod = "fallbackReponerStock")
     @Retry(name = "producto-service-write")
     public void reponerProductosStock(List<ProductoIntegrationStockDto> productosReponerStock){
         productoClient.reponerProductoStock(productosReponerStock);
     }
 
-    //fallback para --> reponerProductosStock
-    public void fallbackReponerStock(Long productoId, Integer cantidadReponer, Throwable ex ){
-        //Primero filtramos las excepciones de negocio que son las que heredan de la superclase "BusinessException"
-        if (ex instanceof BusinessException) {
-            throw (RuntimeException) ex;
+    public void fallbackReponerStock(List<ProductoIntegrationStockDto> productosReponerStock, Throwable ex ){
+        // Propaga excepciones de negocio sin modificaciones.
+        if (ex instanceof BusinessException be) {
+            throw be;
         }
 
-        //Si la excepción no es de negocio, agregamos le warn al log indicando que el fallback fue activado por problema de comunicación
-        log.warn("fallback activado para producto-service -> productoId={}", productoId, ex);
-
-        /*Error de infraestructura en la comunicación con el servicio
-         producto -> Lo indicamos*/
+        /*Informa error de infraestructura en la
+         * comunicación con producto-service*/
+        log.warn("fallback activado para producto-service.", ex);
         throw new ServiceUnavailableException("No se pudo establecer comunicación con producto-service. Por favor intente más tarde");
     }
 
-    //Método protegido por CB que valida si el stock de una lista de productos es suficiente para cubrir una respectiva cantidad
-    //Si el stock de al menos un producto es insuficiente -> Excepción que interpreta este dominio para informarlo
+    /**
+     * Valida stock de productos en producto-service
+     * */
     @CircuitBreaker(name = "producto-service-write", fallbackMethod = "fallbackValidarProductosStock")
     @Retry(name = "producto-service-write")
     public void validarProductosStock(List<ProductoIntegrationStockDto> productosValidarStock){
         productoClient.validarStock(productosValidarStock);
     }
 
-    //Método fallback de validarProductosStock
     public void fallbackValidarProductosStock(List<ProductoIntegrationStockDto> productosValidarStock, Throwable ex){
-        /*Filtramos las excepciones que sean de dominio (heredan de BusinessException) para evitar lanzar el
-          ServiceUnavailable que me oculte la excepción, ya que las excepciones de dominio se deben lanzar como son*/
+        //Propaga excepciones de dominio sin modificaciones
         if(ex instanceof BusinessException be){
-            /*Lanzamos la excepción de tipo estático BusinessException (UnChecked), ya que las que son tipo Throwable (posible Checked),
-            java me exige manejarlas explícitamente*/
             throw be;
         }
 
-        //Si la excepción no es de dominio, entonces lanzamos la alerta de la activación del fallback al log del proyecto
+        //Informa el problema de infraestructura
         log.warn("fallback activado en validación de stock de productos", ex);
-
-        //Lanzamos el Service_Unavailable indicando el problema de infraestructura
         throw new ServiceUnavailableException("No se pudo establecer la comunicación con producto-service. Intente de nuevo más tarde");
     }
 
-    //Método protegido por CB para encontrar un producto en producto-service por su id
+    /**
+     * Recupera un producto desde producto-service.
+     */
     @CircuitBreaker(name = "producto-service-read", fallbackMethod = "fallbackFindProducto")
     @Retry(name = "producto-service-read")
     public ProductoIntegrationDto findProducto(Long productoId){
         return productoClient.findProducto(productoId);
     }
 
-    //fallback para --> findProducto
     public ProductoIntegrationDto fallbackFindProducto(Long productoId, Throwable ex){
-        //Primero filtramos las excepciones de negocio que son las que heredan de la superclase "BusinessException"
-        if (ex instanceof BusinessException) {
-            throw (RuntimeException) ex;
+        //Propaga excepciones de dominio sin modificación
+        if (ex instanceof BusinessException be) {
+            throw be;
         }
 
-        //Si la excepción no es de negocio, agregamos le warn al log indicando que el fallback fue activado por problema de comunicación
+        //Informa error de infraestructura
         log.warn("fallback activado para producto-service -> productoId={}", productoId, ex);
-
-        /*Error de infraestructura en la comunicación con el servicio
-         producto -> Lo indicamos*/
         throw new ServiceUnavailableException("No se pudo establecer comunicación con producto-service. Por favor intente más tarde");
     }
 }

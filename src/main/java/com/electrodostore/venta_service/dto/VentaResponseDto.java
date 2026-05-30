@@ -6,7 +6,6 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
-//Clase de objetos de transferencia de datos para exponer a una venta al cliente (view)
 public record VentaResponseDto(
         Long id,
         LocalDate date,

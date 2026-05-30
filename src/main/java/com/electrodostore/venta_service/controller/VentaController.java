@@ -18,8 +18,8 @@ import java.util.List;
 @RequestMapping("/ventas")
 public class VentaController {
 
-    //Inyección de dependencia por constructor para el service de Venta
     private final IVentaService ventaService;
+
     public VentaController(IVentaService ventaService){
         this.ventaService = ventaService;
     }

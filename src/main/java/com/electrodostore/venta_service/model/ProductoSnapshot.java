@@ -5,24 +5,27 @@ import lombok.*;
 
 import java.math.BigDecimal;
 
+/**
+ * Snapshot del producto al momento de realizar la venta.
+ *
+ * Permite conservar información histórica del producto
+ * aunque este sea modificado posteriormente en su servicio origen.
+ */
 @Getter  @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-/*Definimos clase @Embeddable para sacar objetos embebidos de esta con información del estado de todos los
-productos que pertenece a la venta en el momento que se realiza la venta*/
 @Embeddable
 public class ProductoSnapshot {
 
-    /*Referencia (productId) a la identidad del producto original, y por la que se comparan los Snapshot
-    embebidos para evitar duplicidad*/
+    /* Identificador del producto original.
+       Forma parte de equals() y hashCode() para evitar
+       productos duplicados en la venta. */
     @EqualsAndHashCode.Include
     private Long productId;
     private String productName;
     private BigDecimal productPrice;
-    //Cantidad comprada del producto
     private Integer purchasedQuantity;
-    //Subtotal = precio * productQuantity
     private BigDecimal subTotal;
     private String productDescription;
 

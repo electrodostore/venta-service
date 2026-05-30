@@ -6,10 +6,14 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-//Interfaz que hereda de la clase de Jpa que me permite usar los diferentes métodos para las operaciones HTTP
+/**
+ * Repositorio de acceso a datos para la entidad Venta.
+ */
 @Repository
 public interface IVentaRepository extends JpaRepository<Venta, Long> {
 
-    //Método personalizado que SpringData Jpa interpreta para traerme la lista de las ventas que comparten cliente con la misma id
+    /**
+     * Recupera las ventas asociadas a un cliente
+     */
     List<Venta> findByClient_clientId(Long clientId);
 }
