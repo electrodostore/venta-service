@@ -50,12 +50,22 @@ public class ProductoErrorDecoder implements ErrorDecoder {
                               error.getMensaje()
                        );
 
+                    //Si el error no es conocido en este dominio, lanzamos excepción Feign
+                    default:
+                        return FeignException.errorStatus(methodKey, response);
+                }
+            }
+
+            // Procesa errores de negocio expuestos mediante HTTP 404.
+            if (response.status() == 409) {
+
+                switch (VentaErrorCode.valueOf(error.getErrorCode())) {
+
                     case PRODUCT_STOCK_INSUFICIENTE:
                         return new ProductoStockInsuficienteException(
                                 error.getMensaje()
                         );
 
-                    //Si el error no es conocido en este dominio, lanzamos excepción Feign
                     default:
                         return FeignException.errorStatus(methodKey, response);
                 }
