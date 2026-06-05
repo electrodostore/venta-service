@@ -37,20 +37,20 @@ public class VentaController {
         return ResponseEntity.ok(ventaService.findVentaResponse(id));
     }
 
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('CLIENT')")
     @GetMapping("/cliente/{clientId}")
     public ResponseEntity<List<VentaResponseDto>> findClienteVentas(@PathVariable Long clientId){
         return ResponseEntity.ok(ventaService.findClienteVentas(clientId));
     }
 
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('CLIENT')")
     @PostMapping
     public ResponseEntity<VentaCreadaDto> createVenta(@RequestBody @NotEmpty List<@NotNull @Valid ProductoRequestDto> productsList){
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ventaService.saveVenta(productsList));
     }
 
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('CLIENT')")
     @PatchMapping("/{id}/cancel")
     public ResponseEntity<Void> cancelVenta(@PathVariable Long id){
         ventaService.cancelVenta(id);
