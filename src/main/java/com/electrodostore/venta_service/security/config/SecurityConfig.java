@@ -50,8 +50,11 @@ public class SecurityConfig {
                  * Toda request requiere autenticación,
                  * excepto las rutas públicas que se definan explícitamente.
                  */
-                .authorizeHttpRequests(auth ->
-                        auth.anyRequest().authenticated()
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(
+                                "/actuator/**"
+                        ).permitAll()
+                        .anyRequest().authenticated()
                 )
 
                 .build();
