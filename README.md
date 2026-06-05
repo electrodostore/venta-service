@@ -1,219 +1,304 @@
+<div align="center">
+
 # 💳 Venta Service
 
-## 📌 Descripción
-Microservicio central dentro del ecosistema de ElectrodoStore, encargado de gestionar el proceso de ventas de la plataforma.
+### Microservicio de gestión de ventas
+#### ElectrodoStore · Spring Boot · OAuth2 Resource Server · OpenFeign
 
-Este servicio actúa como **orquestador de ventas**, asegurando la consistencia del negocio mediante la integración con otros microservicios, validando:
+![Spring Security](https://img.shields.io/badge/Spring_Security-6DB33F?style=for-the-badge&logo=springsecurity&logoColor=white)
+![OAuth2](https://img.shields.io/badge/OAuth2_Resource_Server-EB5424?style=for-the-badge&logo=auth0&logoColor=white)
+![OpenFeign](https://img.shields.io/badge/OpenFeign-6DB33F?style=for-the-badge&logo=spring&logoColor=white)
+![Resilience4j](https://img.shields.io/badge/Circuit_Breaker_+_Retry-6DB33F?style=for-the-badge&logo=spring&logoColor=white)
 
-- Existencia del cliente
-- Disponibilidad de productos
-- Consistencia del stock antes y después de la compra
-
----
-
-## 🧩 Responsabilidades
-
-- Registrar nuevas ventas
-- Consultar ventas por ID o por cliente
-- Actualizar y eliminar ventas
-- Validar y descontar stock de productos
-- Mantener snapshots de cliente y productos al momento de la compra
-- Manejar errores distribuidos mediante ErrorDecoder
+</div>
 
 ---
 
-## ⚙️ Tecnologías utilizadas
+Venta Service es responsable de la gestión del ciclo de vida de las ventas dentro de **ElectrodoStore**.
 
-- Java + Spring Boot
-- Spring Data JPA
-- MySQL
-- Spring Cloud (Eureka Client)
-- OpenFeign
-- Resilience4j (Circuit Breaker + Retry)
+Mantiene el historial comercial de las compras realizadas por los clientes, preservando snapshots de productos y clientes para garantizar consistencia histórica.
+
+Implementa seguridad basada en **OAuth2 Resource Server**, ownership mediante claims JWT e integración distribuida con otros dominios del sistema.
 
 ---
 
-## 🗄️ Modelo de dominio
+## 🎯 Responsabilidades
 
-### 🧾 Venta
+- 💳 Registro de ventas
+- 📜 Consulta de historial de compras
+- ❌ Cancelación de ventas
+- 📦 Validación y actualización de inventario
+- 👤 Preservación de snapshots de clientes
+- 🛍️ Preservación de snapshots de productos
+- 🔐 Protección basada en ownership
+- 📡 Propagación de identidad entre microservicios
+
+---
+
+## 🧰 Stack tecnológico
+
+![Spring Boot](https://img.shields.io/badge/Spring_Boot-6DB33F?style=flat-square&logo=springboot&logoColor=white)
+![Spring Security](https://img.shields.io/badge/Spring_Security-6DB33F?style=flat-square&logo=springsecurity&logoColor=white)
+![OAuth2](https://img.shields.io/badge/OAuth2-EB5424?style=flat-square&logo=auth0&logoColor=white)
+![Spring JPA](https://img.shields.io/badge/Spring_Data_JPA-6DB33F?style=flat-square&logo=spring&logoColor=white)
+![MySQL](https://img.shields.io/badge/MySQL-4479A1?style=flat-square&logo=mysql&logoColor=white)
+![OpenFeign](https://img.shields.io/badge/OpenFeign-6DB33F?style=flat-square&logo=spring&logoColor=white)
+![Eureka](https://img.shields.io/badge/Eureka-6DB33F?style=flat-square&logo=spring&logoColor=white)
+![LoadBalancer](https://img.shields.io/badge/LoadBalancer-6DB33F?style=flat-square&logo=spring&logoColor=white)
+![Resilience4j](https://img.shields.io/badge/Resilience4j-6DB33F?style=flat-square&logo=spring&logoColor=white)
+
+---
+
+## 📦 Modelo de dominio
+
+```mermaid
+flowchart LR
+
+Venta["💳 Venta"]
+Cliente["👤 Cliente Snapshot"]
+Producto["📦 Producto Snapshot"]
+
+Venta --> Cliente
+Venta --> Producto
+```
+
+### Entidad Venta
 
 | Campo | Descripción |
-|---|---|
-| `id` | Identificador único |
-| `date` | Fecha de la venta |
+| --- | --- |
+| `id` | Identificador de la venta |
+| `date` | Fecha de registro |
 | `totalItems` | Cantidad total de productos |
-| `totalPrice` | Precio total calculado |
+| `totalPrice` | Valor total de la venta |
 | `listProducts` | Snapshot de productos |
 | `client` | Snapshot del cliente |
-
-### 📌 Snapshots
-
-Los snapshots preservan el estado del cliente y los productos **en el momento exacto de la venta**, evitando inconsistencias ante futuros cambios en los datos originales.
+| `status` | Estado actual de la venta |
 
 ---
 
-## 🔗 Endpoints principales
+## 📸 Snapshots
 
-| Método | Endpoint | Descripción |
-|---|---|---|
-| `GET` | `/ventas` | Listar todas las ventas |
-| `GET` | `/ventas/{id}` | Obtener venta por ID |
-| `GET` | `/ventas/traer-ventas-de-cliente/{clientId}` | Ventas por cliente |
-| `POST` | `/ventas` | Registrar nueva venta |
-| `PUT` | `/ventas/{id}` | Actualizar venta completa |
-| `PATCH` | `/ventas/{id}` | Actualización parcial |
-| `DELETE` | `/ventas/{id}` | Eliminar venta |
+Las ventas almacenan snapshots de cliente y productos, lo que permite:
+
+- Preservar información histórica
+- Evitar inconsistencias ante modificaciones posteriores
+- Reducir dependencias de lectura hacia otros servicios
+- Mantener trazabilidad comercial
 
 ---
 
-## 🔄 Integración con otros servicios
+## 🔄 Estados de la venta
 
-### 👤 cliente-service
-- Validación de existencia del cliente
-- Obtención de datos para snapshot
-
-| Método | Endpoint | Descripción |
-|---|---|---|
-| `GET` | `/clientes/{clientId}` | Obtener cliente por ID |
-
-### 🛍️ producto-service
-- Consulta de productos
-- Validación de stock
-- Descuento y reposición de stock
-
-
-| Método | Endpoint | Descripción |
-|---|---|---|
-| `GET` | `/productos/{productoId}` | Obtener producto por ID |
-| `POST` | `/productos/traer-productos-por-ids` | Obtener lista de productos por IDs |
-| `POST` | `/productos/verificar-stock` | Validar stock de productos |
-| `PATCH` | `/productos/descontar-stock` | Descontar stock |
-| `PATCH` | `/productos/reponer-stock` | Reponer stock |
-
-La comunicación se realiza mediante **Spring Cloud OpenFeign**.
+| Estado | Descripción |
+| --- | --- |
+| `PENDING` | Venta registrada pendiente de completar |
+| `COMPLETED` | Venta completada exitosamente |
+| `CANCELED` | Venta cancelada |
+| `RETURNED` | Venta devuelta |
 
 ---
 
-## 🛡️ Resiliencia (Circuit Breaker + Retry)
+## 🔐 Modelo de seguridad
 
-La comunicación con servicios externos está protegida mediante **Resilience4j**:
+Venta Service funciona como **OAuth2 Resource Server**. Los JWT son emitidos por Auth Service y validados localmente mediante RSA256.
 
-- **Circuit Breaker** → Evita llamadas repetidas a un servicio caído
-- **Retry** → Reintenta automáticamente en fallos transitorios
-- **Fallback** → Proporciona una respuesta controlada en caso de error
+### Claims utilizados
 
-### ⚙️ Configuración base
-```yaml
-slidingWindowSize: 10
-failureRateThreshold: 50
-waitDurationInOpenState: 30s
+| Claim | Descripción |
+| --- | --- |
+| `sub` | Username autenticado |
+| `userId` | Identificador interno del usuario |
+| `clientId` | Identificador del cliente |
+
+---
+
+## 👤 Ownership
+
+Las operaciones realizadas por clientes utilizan el claim `clientId` obtenido desde el JWT, lo que evita que un cliente pueda:
+
+- Registrar ventas en nombre de otros clientes
+- Cancelar ventas pertenecientes a otros clientes
+- Consultar información comercial ajena
+
+> La identidad utilizada para operaciones de negocio proviene del claim `clientId`, no de parámetros enviados por el usuario.
+
+---
+
+## 🔗 Integración entre microservicios
+
+```mermaid
+flowchart LR
+
+Venta["💳 Venta Service"]
+Feign["📡 OpenFeign + JWT"]
+Cliente["👤 Cliente Service"]
+Producto["📦 Producto Service"]
+
+Venta --> Feign
+Feign --> Cliente
+Feign --> Producto
 ```
 
-### 🔀 Circuitos separados por operación
+### Integraciones
 
-| Circuito | Uso | Excepciones ignoradas |
-|---|---|---|
-| `producto-service-read` | Consultas de producto | `ProductoNotFoundException` |
-| `producto-service-write` | Stock (validar/descontar/reponer) | `ProductoNotFoundException`, `ProductoStockInsuficienteException` |
-| `cliente-service` | Validación de cliente | `ClienteNotFoundException` |
+| Servicio | Propósito |
+| --- | --- |
+| `cliente-service` | Obtención de información del cliente |
+| `producto-service` | Consulta, validación y actualización de stock |
+
+**Características:**
+
+- 🔗 Comunicación síncrona vía OpenFeign
+- 🪙 Propagación automática del JWT
+- 🔍 Descubrimiento dinámico con Eureka
+- ⚖️ Balanceo con Spring Cloud LoadBalancer
 
 ---
 
-## 🔁 Estrategia de manejo de errores
+## 💳 Flujo de registro de venta
 
-Los errores se clasifican en dos categorías:
+```mermaid
+flowchart TD
 
-- **Errores de negocio** → se propagan directamente
-- **Errores de infraestructura** → se convierten en `ServiceUnavailable`
-```java
-if (ex instanceof BusinessException be) {
-    throw be;
-}
-throw new ServiceUnavailableException("Error de comunicación...");
+A["🛒 Solicitud de compra"]
+--> B["👤 Obtener cliente"]
+
+B --> C["📦 Obtener productos"]
+
+C --> D["🔍 Validar stock"]
+
+D --> E["📸 Crear snapshots"]
+
+E --> F["💳 Registrar venta"]
+
+F --> G["📉 Descontar stock"]
 ```
 
 ---
 
-## 🔍 Manejo de errores distribuido (ErrorDecoder)
+## 🛡️ Resiliencia
 
-- Se implementan `ErrorDecoder` personalizados para traducir errores HTTP en excepciones de dominio:
-```java
-switch (VentaErrorCode.valueOf(error.getErrorCode())) {
-    case PRODUCT_NOT_FOUND:
-        return new ProductoNotFoundException(error.getMensaje());
-}
-```
+Las integraciones externas están protegidas mediante:
 
-Esto permite mantener consistencia en el dominio sin depender de códigos HTTP externos.
+| Mecanismo | Propósito |
+| --- | --- |
+| **Retry** | Reintentos automáticos ante fallos transitorios |
+| **Circuit Breaker** | Aislamiento de fallos |
+| **Fallback** | Respuestas controladas ante degradación |
+
+> Esto evita propagación de errores de infraestructura hacia los consumidores.
 
 ---
 
-## ⚠️ Manejo global de excepciones
+## ⚠️ Manejo de errores
 
-Centralizado mediante `@RestControllerAdvice`.
+Se utiliza manejo centralizado mediante `@RestControllerAdvice`, códigos de error de dominio, traducción de errores Feign y respuestas consistentes.
 
-### Excepciones manejadas:
-- `VentaNotFoundException`
-- `ClienteNotFoundException`
-- `ProductoNotFoundException`
-- `ProductoStockInsuficienteException`
-- `ServiceUnavailable`
-
-### Estructura de respuesta de error:
 ```json
 {
-  "timestamp": "2026-03-28T12:00:00",
+  "timestamp": "...",
   "status": 404,
   "error": "NOT_FOUND",
   "errorCode": "PRODUCT_NOT_FOUND",
-  "mensaje": "Producto no encontrado"
+  "message": "Producto no encontrado"
 }
 ```
+
+---
+
+## 🔍 Traducción de errores remotos
+
+Los `ErrorDecoder` permiten transformar errores HTTP remotos en excepciones de dominio propias.
+
+| Error remoto | Excepción local |
+| --- | --- |
+| `CLIENT_NOT_FOUND` | `ClienteNotFoundException` |
+| `PRODUCT_NOT_FOUND` | `ProductoNotFoundException` |
+| `PRODUCT_STOCK_INSUFFICIENT` | `ProductoStockInsuficienteException` |
+
+---
+
+## 🌐 Endpoints
+
+### 👨‍💼 Administración
+
+| Método | Endpoint | Descripción |
+| --- | --- | --- |
+| `GET` | `/ventas` | Listar ventas |
+| `GET` | `/ventas/{id}` | Obtener venta |
+| `PATCH` | `/ventas/{id}/admin/cancel` | Cancelación administrativa |
+
+### 👤 Cliente
+
+| Método | Endpoint | Descripción |
+| --- | --- | --- |
+| `GET` | `/ventas/cliente/{clientId}` | Consultar ventas de cliente |
+| `PATCH` | `/ventas/{id}/cancel` | Cancelar venta |
+
+### 🔗 Integración interna
+
+| Método | Endpoint | Descripción |
+| --- | --- | --- |
+| `POST` | `/ventas` | Registrar venta desde carrito-service |
+
+> ⚠️ Algunos endpoints son utilizados actualmente por otros microservicios mediante JWT de usuario propagado. En futuras versiones se implementará autenticación específica entre microservicios.
+
+---
+
+## 🏗️ Arquitectura
+
+- 🌐 API Gateway como punto único de entrada
+- 🔐 JWT validado localmente mediante OAuth2 Resource Server
+- 👤 Ownership basado en claim `clientId`
+- 📸 Preservación histórica mediante snapshots
+- 🔗 Comunicación síncrona mediante OpenFeign
+- 🔍 Descubrimiento dinámico con Eureka
+- 🛡️ Resiliencia mediante Retry y Circuit Breaker
+- 🗄️ Database per Service
 
 ---
 
 ## 💡 Decisiones de diseño
 
-- Snapshots para consistencia histórica de ventas
-- Circuitos separados por tipo de operación (lectura / escritura)
-- Separación entre errores de negocio e infraestructura
-- Manejo centralizado de excepciones
-- DTOs diferenciados para entrada y salida de datos
-- Comunicación desacoplada mediante Feign
+<details>
+<summary><b>📸 Snapshots embebidos</b></summary>
+<br>
+Las ventas almacenan snapshots de clientes y productos para preservar el contexto exacto de la transacción, garantizando trazabilidad histórica independientemente de cambios futuros en otros servicios.
+</details>
 
----
+<details>
+<summary><b>🔐 Ownership basado en JWT</b></summary>
+<br>
+Las operaciones del cliente utilizan el claim <code>clientId</code> como identidad de negocio, sin depender de parámetros enviados por el usuario.
+</details>
 
-## ▶️ Ejecución local
+<details>
+<summary><b>🧩 Separación de dominios</b></summary>
+<br>
+Venta Service no administra clientes ni productos; consume información de sus servicios propietarios mediante OpenFeign.
+</details>
 
-**Con Maven**
-```bash
-# Corre en el puerto 9191
-mvn spring-boot:run
-```
+<details>
+<summary><b>📡 Propagación de identidad</b></summary>
+<br>
+Las llamadas distribuidas mantienen el contexto de seguridad mediante JWT, propagado automáticamente a través de interceptores Feign.
+</details>
 
-**Con Docker**
-```bash
-docker build -t venta-service .
-```
-
-> ⚠️ Requiere que **Config Server** y **Eureka Server** estén corriendo antes de iniciar este servicio.
-
----
-
-## 🔌 Configuración de red
-
-| Propiedad | Valor                  |
-|---|------------------------|
-| Puerto interno | `9191`                 |
-| Acceso externo | ❌ Solo vía API Gateway |
+<details>
+<summary><b>🗄️ Database per Service</b></summary>
+<br>
+El servicio mantiene su propia base de datos y no accede directamente a bases de datos externas, reduciendo el acoplamiento entre dominios.
+</details>
 
 ---
 
 ## 🚀 Mejoras futuras
 
-- Implementación de autenticación (JWT / OAuth2)
-- Eventos asincrónicos con Kafka / RabbitMQ
-- Observabilidad (tracing distribuido + logs centralizados)
-- Pruebas automatizadas
+| Mejora | Descripción |
+| --- | --- |
+| 🔑 **M2M Auth** | Autenticación específica entre microservicios |
+| 📨 **Eventos asincrónicos** | Kafka o RabbitMQ para desacoplamiento temporal |
+| 📡 **Observabilidad** | Tracing distribuido con Zipkin / OpenTelemetry |
+| 📋 **Auditoría** | Registro de operaciones críticas |
+| 🔄 **Devoluciones** | Implementación completa del flujo de devolución |
 
----
